@@ -15,6 +15,7 @@ class User(Base):
     items = relationship("Item", back_populates="owner")
     payments = relationship("Payment", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
+    carbon_records = relationship("CarbonRecord", back_populates="user")
 
 class Item(Base):
     __tablename__ = "items"
@@ -59,6 +60,7 @@ class Transaction(Base):
     
     user = relationship("User", back_populates="transactions")
     payment = relationship("Payment", back_populates="transaction")
+    carbon_record = relationship("CarbonRecord", back_populates="transaction", uselist=False)
 
 class EmissionFactor(Base):
     __tablename__ = "emission_factors"
@@ -69,3 +71,17 @@ class EmissionFactor(Base):
     unit = Column(String, default="kg/INR")
     description = Column(String, nullable=True)
 
+class CarbonRecord(Base):
+    __tablename__ = "carbon_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    transaction_id = Column(Integer, ForeignKey("transactions.id"))
+    category = Column(String) # Transport, Food, etc.
+    amount = Column(Integer) # Transaction amount in paisa
+    emission_factor = Column(Float) # The factor used for calculation
+    carbon_emission = Column(Float) # Calculated emission in kg CO2
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="carbon_records")
+    transaction = relationship("Transaction", back_populates="carbon_record")

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import datetime
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -15,6 +16,25 @@ class UserLogin(BaseModel):
 class UserOut(UserBase):
     id: int
     is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class CarbonRecordBase(BaseModel):
+    category: str
+    amount: int
+    emission_factor: float
+    carbon_emission: float
+
+class CarbonRecordCreate(CarbonRecordBase):
+    user_id: int
+    transaction_id: int
+
+class CarbonRecordResponse(CarbonRecordBase):
+    id: int
+    user_id: int
+    transaction_id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -37,8 +57,6 @@ class PaymentVerify(BaseModel):
     razorpay_order_id: str
     razorpay_payment_id: str
     razorpay_signature: str
-
-from datetime import datetime
 
 class PaymentResponse(BaseModel):
     id: int
