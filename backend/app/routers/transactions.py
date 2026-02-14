@@ -50,7 +50,7 @@ def create_transaction(
     
     return db_transaction
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 @router.get("/summary", response_model=schemas.DashboardSummary)
 def get_dashboard_summary(
@@ -90,7 +90,7 @@ def get_dashboard_summary(
         .scalar() or 0.0
 
     # Monthly Carbon (Current Month)
-    today = datetime.now()
+    today = datetime.now(timezone.utc)
     monthly_carbon = db.query(func.sum(models.CarbonRecord.carbon_emission))\
         .filter(
             models.CarbonRecord.user_id == current_user.id,
@@ -104,6 +104,11 @@ def get_dashboard_summary(
         .scalar()
 
     if first_record_date:
+        # Ensure first_record_date is offset-aware or today is naive to match
+        # DB usually returns offset-aware if column is DateTime(timezone=True)
+        if first_record_date.tzinfo is None:
+            first_record_date = first_record_date.replace(tzinfo=timezone.utc)
+            
         days_active = (today - first_record_date).days + 1
         daily_average = total_carbon / days_active
     else:
