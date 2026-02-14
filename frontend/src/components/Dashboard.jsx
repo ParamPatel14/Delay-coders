@@ -1,0 +1,119 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Payment from './Payment';
+import DashboardSummary from './DashboardSummary';
+import TransactionList from './TransactionList';
+import api from '../api/axios';
+import { LogOut, User, Leaf } from 'lucide-react';
+
+const Dashboard = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
+    const fetchSummary = async () => {
+        try {
+            const response = await api.get('/transactions/summary');
+            setSummary(response.data);
+        } catch (error) {
+            console.error("Failed to fetch dashboard summary:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSummary();
+    }, []);
+
+    // Callback to refresh data after a payment
+    const handlePaymentSuccess = () => {
+        fetchSummary();
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 font-sans">
+            {/* Navbar */}
+            <nav className="bg-white shadow-sm border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-16">
+                        <div className="flex items-center">
+                            <Leaf className="h-8 w-8 text-green-600 mr-2" />
+                            <span className="text-2xl font-bold text-gray-900 tracking-tight">Green<span className="text-green-600">Zaction</span></span>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
+                                <User className="h-4 w-4 mr-2 text-gray-500" />
+                                {user?.full_name || user?.email}
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                            >
+                                <LogOut className="h-4 w-4 mr-2" />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+                {/* Stats Section */}
+                <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Overview</h2>
+                    {loading ? (
+                        <div className="animate-pulse grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="h-24 bg-gray-200 rounded-lg"></div>
+                            <div className="h-24 bg-gray-200 rounded-lg"></div>
+                            <div className="h-24 bg-gray-200 rounded-lg"></div>
+                        </div>
+                    ) : (
+                        <DashboardSummary summary={summary} />
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content - Transactions */}
+                    <div className="lg:col-span-2 space-y-6">
+                         <h2 className="text-xl font-semibold text-gray-800">Recent Activity</h2>
+                         {loading ? (
+                            <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
+                         ) : (
+                             <TransactionList transactions={summary?.recent_transactions} />
+                         )}
+                    </div>
+
+                    {/* Sidebar - Payment & Actions */}
+                    <div className="space-y-6">
+                        <h2 className="text-xl font-semibold text-gray-800">Quick Actions</h2>
+                        <Payment onSuccess={handlePaymentSuccess} />
+                        
+                        {/* Placeholder for Profile/Settings card */}
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                             <h3 className="font-medium text-gray-900 mb-2">Account Status</h3>
+                             <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-500">Membership</span>
+                                <span className="font-semibold text-green-600">Active</span>
+                             </div>
+                             <div className="mt-4 pt-4 border-t border-gray-100">
+                                <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                    View Profile Settings &rarr;
+                                </button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default Dashboard;
