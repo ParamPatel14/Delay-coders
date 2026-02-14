@@ -2,18 +2,18 @@ import React from 'react';
 import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle, Medal, Flame } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
-        <div className="p-5">
+    <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
+        <div className="p-6">
             <div className="flex items-center">
-                <div className={`flex-shrink-0 rounded-md p-3 ${color}`}>
+                <div className={`flex-shrink-0 rounded-lg p-3 ${color} ring-4 ring-opacity-20 ring-white`}>
                     <Icon className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                     <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
+                        <dt className="text-sm font-medium text-gray-600 truncate">{title}</dt>
                         <dd>
-                            <div className="text-lg font-medium text-gray-900">{value}</div>
-                            {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+                            <div className="text-2xl font-semibold text-gray-900 leading-tight">{value}</div>
+                            {subtext && <p className="text-sm text-gray-400 mt-1">{subtext}</p>}
                         </dd>
                     </dl>
                 </div>
@@ -39,7 +39,7 @@ const DashboardSummary = ({ summary }) => {
     const streak = summary.streak || { current_streak: 0, longest_streak: 0 };
 
     return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {/* Financial Stats */}
             <StatCard 
                 title="Total Spent" 
