@@ -5,7 +5,7 @@ from sqlalchemy import text
 from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
 from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements
-from .services import badges
+from .services import badges, challenges
 
 # Create the database tables
 models.Base.metadata.create_all(bind=engine)
@@ -19,6 +19,7 @@ def startup_event():
     try:
         emissions.seed_emission_factors(db)
         badges.seed_default_badges(db)
+        challenges.seed_default_challenges(db)
     finally:
         db.close()
 

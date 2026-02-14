@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List
 from .. import models, schemas, dependencies
 from ..database import get_db
-from ..services import carbon, eco_points, reward_rules, user_level, badges
+from ..services import carbon, eco_points, reward_rules, user_level, badges, challenges
 
 router = APIRouter(
     prefix="/transactions",
@@ -44,6 +44,7 @@ def create_transaction(
         amount=db_transaction.amount,
         category=db_transaction.category
     )
+    challenges.update_on_transaction(db, current_user.id)
     eco_points.award_points_for_carbon_saving(
         db=db,
         user_id=current_user.id,
@@ -167,6 +168,10 @@ def get_dashboard_summary(
         .order_by(models.Badge.name.asc())\
         .limit(20)\
         .all()
+    
+    streak = db.query(models.EcoStreak).filter(models.EcoStreak.user_id == current_user.id).first()
+    
+    challenges_status = challenges.get_user_challenges_status(db, current_user.id)
 
     return {
         "total_spent": total_spent,
@@ -183,7 +188,9 @@ def get_dashboard_summary(
         "eco_score": eco_score if eco_score else {"score": 0.0, "last_updated": None},
         "recent_rewards": recent_rewards,
         "user_level": user_lvl,
-        "badges": badges_list
+        "badges": badges_list,
+        "streak": streak,
+        "challenges": challenges_status
     }
 
 @router.get("/", response_model=List[schemas.TransactionResponse])

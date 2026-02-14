@@ -156,6 +156,29 @@ class EcoUserLevelResponse(BaseModel):
     class Config:
         from_attributes = True
  
+class StreakResponse(BaseModel):
+    current_streak: int
+    longest_streak: int
+    last_activity_date: Optional[datetime] = None
+ 
+    class Config:
+        from_attributes = True
+ 
+class ChallengeStatusResponse(BaseModel):
+    id: int
+    code: str
+    name: str
+    description: Optional[str] = None
+    type: str
+    goal_value: float
+    reward_points: int
+    progress_value: float
+    completed: bool
+    completed_at: Optional[datetime] = None
+ 
+    class Config:
+        from_attributes = True
+ 
 class BadgeResponse(BaseModel):
     id: int
     code: str
@@ -177,3 +200,5 @@ class DashboardSummary(BaseModel):
     recent_rewards: List[EcoPointsTransactionResponse] = []
     user_level: Optional[EcoUserLevelResponse] = None
     badges: List[BadgeResponse] = []
+    streak: Optional[StreakResponse] = None
+    challenges: List[ChallengeStatusResponse] = []

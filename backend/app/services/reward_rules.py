@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from .. import models
-from . import eco_points
+from . import eco_points, streaks, challenges
 from datetime import datetime, timezone
 
 MILESTONES = [5, 10, 25, 50]
@@ -23,6 +23,9 @@ def apply_rules_for_transaction(db: Session, user_id: int, transaction_id: int, 
         ).first()
         if not exists_daily:
             eco_points.award_points(db, user_id, 20, "BONUS", "Daily eco activity", transaction_id)
+            streaks.update_on_activity(db, user_id, cr.created_at)
+    if saving:
+        challenges.update_on_saving(db, user_id, float(saving.saved_amount or 0.0))
     total_saved = db.query(func.sum(models.CarbonSaving.saved_amount)).filter(models.CarbonSaving.user_id == user_id).scalar() or 0.0
     for m in MILESTONES:
         if total_saved >= m:

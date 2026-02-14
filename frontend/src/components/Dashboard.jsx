@@ -6,6 +6,8 @@ import DashboardSummary from './DashboardSummary';
 import TransactionList from './TransactionList';
 import CarbonList from './CarbonList';
 import RewardsList from './RewardsList';
+import BadgesList from './BadgesList';
+import ChallengesList from './ChallengesList';
 import api from '../api/axios';
 import { LogOut, User, Leaf } from 'lucide-react';
 
@@ -107,6 +109,22 @@ const Dashboard = () => {
                                 <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
                              ) : (
                                  <RewardsList rewards={summary?.recent_rewards} />
+                             )}
+                         </div>
+
+                         <div>
+                             {loading ? (
+                                <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
+                             ) : (
+                                 <BadgesList badges={summary?.badges} />
+                             )}
+                         </div>
+                         
+                         <div>
+                             {loading ? (
+                                <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
+                             ) : (
+                                 <ChallengesList challenges={summary?.challenges} />
                              )}
                          </div>
                     </div>

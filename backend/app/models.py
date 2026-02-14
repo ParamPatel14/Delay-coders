@@ -171,3 +171,38 @@ class UserBadge(Base):
 
     user = relationship("User")
     badge = relationship("Badge")
+
+class EcoStreak(Base):
+    __tablename__ = "eco_streaks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+    current_streak = Column(Integer, default=0)
+    longest_streak = Column(Integer, default=0)
+    last_activity_date = Column(DateTime(timezone=True), nullable=True)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class Challenge(Base):
+    __tablename__ = "challenges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, index=True)
+    name = Column(String)
+    description = Column(String, nullable=True)
+    type = Column(String)  # transactions_count, carbon_saved, points_earned
+    goal_value = Column(Float)
+    reward_points = Column(Integer, default=0)
+    active = Column(Boolean, default=True)
+
+class UserChallengeProgress(Base):
+    __tablename__ = "user_challenge_progress"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    challenge_id = Column(Integer, ForeignKey("challenges.id"), index=True)
+    progress_value = Column(Float, default=0.0)
+    completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User")
+    challenge = relationship("Challenge")
