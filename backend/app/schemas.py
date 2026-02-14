@@ -120,3 +120,29 @@ class EmissionFactorResponse(EmissionFactorBase):
 
     class Config:
         from_attributes = True
+
+class EcoPointsBalanceBase(BaseModel):
+    total_points: int
+    lifetime_points: int
+
+class EcoPointsBalanceResponse(EcoPointsBalanceBase):
+    id: int
+    user_id: int
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class EcoPointsTransactionBase(BaseModel):
+    points: int
+    action_type: str
+    description: Optional[str] = None
+
+class EcoPointsTransactionResponse(EcoPointsTransactionBase):
+    id: int
+    user_id: int
+    transaction_id: Optional[int] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

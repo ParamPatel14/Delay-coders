@@ -17,6 +17,8 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user")
     carbon_records = relationship("CarbonRecord", back_populates="user")
     carbon_savings = relationship("CarbonSaving", back_populates="user")
+    eco_points_balance = relationship("EcoPointsBalance", back_populates="user", uselist=False)
+    eco_points_transactions = relationship("EcoPointsTransaction", back_populates="user")
 
 class Item(Base):
     __tablename__ = "items"
@@ -62,6 +64,7 @@ class Transaction(Base):
     user = relationship("User", back_populates="transactions")
     payment = relationship("Payment", back_populates="transaction")
     carbon_record = relationship("CarbonRecord", back_populates="transaction", uselist=False)
+    eco_points_transaction = relationship("EcoPointsTransaction", back_populates="transaction", uselist=False)
 
 class EmissionFactor(Base):
     __tablename__ = "emission_factors"
@@ -100,3 +103,29 @@ class CarbonSaving(Base):
 
     user = relationship("User", back_populates="carbon_savings")
     carbon_record = relationship("CarbonRecord", back_populates="carbon_saving")
+
+class EcoPointsBalance(Base):
+    __tablename__ = "eco_points_balance"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+    total_points = Column(Integer, default=0)
+    lifetime_points = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="eco_points_balance")
+
+class EcoPointsTransaction(Base):
+    __tablename__ = "eco_points_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    transaction_id = Column(Integer, ForeignKey("transactions.id"), nullable=True) # Optional link to financial transaction
+    points = Column(Integer)
+    action_type = Column(String) # TRANSACTION_REWARD, BONUS, PENALTY, REDEMPTION
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="eco_points_transactions")
+    transaction = relationship("Transaction", back_populates="eco_points_transaction")
