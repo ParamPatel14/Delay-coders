@@ -115,6 +115,11 @@ def get_dashboard_summary(
         .order_by(models.CarbonRecord.created_at.desc())\
         .limit(5)\
         .all()
+        
+    # Total Carbon Saved
+    total_saved = db.query(func.sum(models.CarbonSaving.saved_amount))\
+        .filter(models.CarbonSaving.user_id == current_user.id)\
+        .scalar() or 0.0
 
     return {
         "total_spent": total_spent,
@@ -125,7 +130,8 @@ def get_dashboard_summary(
             "monthly_carbon": round(monthly_carbon, 2),
             "daily_average": round(daily_average, 2)
         },
-        "recent_carbon_records": recent_carbon
+        "recent_carbon_records": recent_carbon,
+        "total_carbon_saved": round(total_saved, 2)
     }
 
 @router.get("/", response_model=List[schemas.TransactionResponse])

@@ -49,7 +49,7 @@ const DashboardSummary = ({ summary }) => {
                 value={`${carbon.total_carbon} kg CO₂`} 
                 icon={Cloud} 
                 color="bg-gray-700"
-                subtext={`Avg: ${carbon.daily_average} kg/day`}
+                subtext={`Saved: ${summary.total_carbon_saved || 0} kg`}
             />
 
             <StatCard 
@@ -57,7 +57,7 @@ const DashboardSummary = ({ summary }) => {
                 value={`${carbon.monthly_carbon} kg CO₂`} 
                 icon={Calendar} 
                 color="bg-orange-500" 
-                subtext="This Month"
+                subtext={`Avg: ${carbon.daily_average} kg/day`}
             />
         </div>
     );

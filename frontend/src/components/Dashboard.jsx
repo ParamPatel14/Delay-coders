@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Payment from './Payment';
 import DashboardSummary from './DashboardSummary';
 import TransactionList from './TransactionList';
+import CarbonList from './CarbonList';
 import api from '../api/axios';
 import { LogOut, User, Leaf } from 'lucide-react';
 
@@ -81,14 +82,24 @@ const Dashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content - Transactions */}
-                    <div className="lg:col-span-2 space-y-6">
-                         <h2 className="text-xl font-semibold text-gray-800">Recent Activity</h2>
-                         {loading ? (
-                            <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
-                         ) : (
-                             <TransactionList transactions={summary?.recent_transactions} />
-                         )}
+                    {/* Main Content - Transactions & Carbon */}
+                    <div className="lg:col-span-2 space-y-8">
+                         <div>
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
+                            {loading ? (
+                                <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
+                            ) : (
+                                <TransactionList transactions={summary?.recent_transactions} />
+                            )}
+                         </div>
+
+                         <div>
+                             {loading ? (
+                                <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
+                             ) : (
+                                 <CarbonList records={summary?.recent_carbon_records} />
+                             )}
+                         </div>
                     </div>
 
                     {/* Sidebar - Payment & Actions */}

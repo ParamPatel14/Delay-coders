@@ -16,6 +16,7 @@ class User(Base):
     payments = relationship("Payment", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
     carbon_records = relationship("CarbonRecord", back_populates="user")
+    carbon_savings = relationship("CarbonSaving", back_populates="user")
 
 class Item(Base):
     __tablename__ = "items"
@@ -68,6 +69,7 @@ class EmissionFactor(Base):
     id = Column(Integer, primary_key=True, index=True)
     category = Column(String, unique=True, index=True)
     co2_per_unit = Column(Float)  # kg CO2 per unit (e.g., per INR)
+    baseline_co2_per_unit = Column(Float, nullable=True) # Industry average for comparison
     unit = Column(String, default="kg/INR")
     description = Column(String, nullable=True)
 
@@ -85,3 +87,16 @@ class CarbonRecord(Base):
 
     user = relationship("User", back_populates="carbon_records")
     transaction = relationship("Transaction", back_populates="carbon_record")
+    carbon_saving = relationship("CarbonSaving", back_populates="carbon_record", uselist=False)
+
+class CarbonSaving(Base):
+    __tablename__ = "carbon_savings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    carbon_record_id = Column(Integer, ForeignKey("carbon_records.id"))
+    saved_amount = Column(Float) # Amount of CO2 saved in kg
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="carbon_savings")
+    carbon_record = relationship("CarbonRecord", back_populates="carbon_saving")

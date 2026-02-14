@@ -103,10 +103,12 @@ class DashboardSummary(BaseModel):
     recent_transactions: List[TransactionResponse]
     carbon_summary: CarbonFootprintSummary
     recent_carbon_records: List[CarbonRecordResponse]
+    total_carbon_saved: float # New field
 
 class EmissionFactorBase(BaseModel):
     category: str
     co2_per_unit: float
+    baseline_co2_per_unit: Optional[float] = None # New field
     unit: str
     description: Optional[str] = None
 

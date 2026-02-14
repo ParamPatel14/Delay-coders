@@ -59,4 +59,20 @@ def calculate_and_record_carbon(
     db.flush() 
     db.refresh(carbon_record)
     
+    # 4. Calculate and Record Carbon Savings
+    if factor and factor.baseline_co2_per_unit:
+        baseline_emission = amount_inr * factor.baseline_co2_per_unit
+        # Savings = Baseline - Actual
+        # Only record if positive savings
+        saved_amount = baseline_emission - carbon_emission
+        
+        if saved_amount > 0:
+            carbon_saving = models.CarbonSaving(
+                user_id=user_id,
+                carbon_record_id=carbon_record.id,
+                saved_amount=saved_amount
+            )
+            db.add(carbon_saving)
+            db.flush() # Ensure ID is generated
+    
     return carbon_record

@@ -55,6 +55,7 @@ def seed_emission_factors(db: Session):
         factor = models.EmissionFactor(
             category=item["category"],
             co2_per_unit=item["co2_per_unit"],
+            baseline_co2_per_unit=item.get("baseline_co2_per_unit"),
             unit=item["unit"],
             description=item.get("description")
         )
