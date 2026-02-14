@@ -148,6 +148,23 @@ class EcoPointsTransactionResponse(EcoPointsTransactionBase):
     class Config:
         from_attributes = True
  
+class EcoUserLevelResponse(BaseModel):
+    level: str
+    points_required: int
+    last_updated: Optional[datetime] = None
+ 
+    class Config:
+        from_attributes = True
+ 
+class BadgeResponse(BaseModel):
+    id: int
+    code: str
+    name: str
+    description: Optional[str] = None
+ 
+    class Config:
+        from_attributes = True
+ 
 class DashboardSummary(BaseModel):
     total_spent: int
     transaction_count: int
@@ -158,3 +175,5 @@ class DashboardSummary(BaseModel):
     eco_points_balance: Optional[EcoPointsBalanceResponse] = None
     eco_score: Optional[EcoScoreResponse] = None
     recent_rewards: List[EcoPointsTransactionResponse] = []
+    user_level: Optional[EcoUserLevelResponse] = None
+    badges: List[BadgeResponse] = []

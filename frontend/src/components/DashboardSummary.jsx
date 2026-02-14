@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle } from 'lucide-react';
+import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle, Medal } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
     <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -35,9 +35,10 @@ const DashboardSummary = ({ summary }) => {
 
     const points = summary.eco_points_balance || { total_points: 0, lifetime_points: 0 };
     const score = summary.eco_score || { score: 0 };
+    const userLevel = summary.user_level || { level: 'Beginner', points_required: 0 };
 
     return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
             {/* Financial Stats */}
             <StatCard 
                 title="Total Spent" 
@@ -75,6 +76,13 @@ const DashboardSummary = ({ summary }) => {
                 icon={GaugeCircle} 
                 color="bg-teal-600" 
                 subtext={`Sustainability score`}
+            />
+            <StatCard 
+                title="Level" 
+                value={userLevel.level} 
+                icon={Medal} 
+                color="bg-purple-600" 
+                subtext={`Threshold: ${userLevel.points_required} pts`}
             />
         </div>
     );

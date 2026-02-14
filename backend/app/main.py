@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
-from .routers import auth, payments, transactions, emissions, carbon, eco_points
+from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements
+from .services import badges
 
 # Create the database tables
 models.Base.metadata.create_all(bind=engine)
@@ -17,6 +18,7 @@ def startup_event():
     db = SessionLocal()
     try:
         emissions.seed_emission_factors(db)
+        badges.seed_default_badges(db)
     finally:
         db.close()
 
@@ -26,6 +28,7 @@ app.include_router(transactions.router)
 app.include_router(emissions.router)
 app.include_router(carbon.router)
 app.include_router(eco_points.router)
+app.include_router(achievements.router)
 
 # Configure CORS
 app.add_middleware(

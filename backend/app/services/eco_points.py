@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from .. import models
-from . import eco_score
+from . import eco_score, user_level, badges
 
 DEFAULT_MULTIPLIER = 100
 
@@ -44,6 +44,8 @@ def award_points_for_carbon_saving(
     db.flush()
     db.refresh(entry)
     eco_score.update_eco_score(db, user_id)
+    user_level.update_user_level(db, user_id)
+    badges.award_badges_post_points(db, user_id)
     return entry
 
 def award_points(
@@ -71,4 +73,6 @@ def award_points(
     db.flush()
     db.refresh(entry)
     eco_score.update_eco_score(db, user_id)
+    user_level.update_user_level(db, user_id)
+    badges.award_badges_post_points(db, user_id)
     return entry

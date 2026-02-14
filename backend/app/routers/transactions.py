@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List
 from .. import models, schemas, dependencies
 from ..database import get_db
-from ..services import carbon, eco_points, reward_rules
+from ..services import carbon, eco_points, reward_rules, user_level, badges
 
 router = APIRouter(
     prefix="/transactions",
@@ -51,6 +51,12 @@ def create_transaction(
         carbon_record_id=carbon_record.id
     )
     reward_rules.apply_rules_for_transaction(
+        db=db,
+        user_id=current_user.id,
+        transaction_id=db_transaction.id,
+        carbon_record_id=carbon_record.id
+    )
+    badges.award_badges_for_transaction(
         db=db,
         user_id=current_user.id,
         transaction_id=db_transaction.id,
@@ -150,6 +156,17 @@ def get_dashboard_summary(
         .order_by(models.EcoPointsTransaction.created_at.desc())\
         .limit(5)\
         .all()
+    
+    # User Level
+    user_lvl = db.query(models.EcoUserLevel).filter(models.EcoUserLevel.user_id == current_user.id).first()
+    if not user_lvl:
+        user_lvl = user_level.update_user_level(db, current_user.id)
+    
+    badges_list = db.query(models.Badge).join(models.UserBadge, models.UserBadge.badge_id == models.Badge.id)\
+        .filter(models.UserBadge.user_id == current_user.id)\
+        .order_by(models.Badge.name.asc())\
+        .limit(20)\
+        .all()
 
     return {
         "total_spent": total_spent,
@@ -164,7 +181,9 @@ def get_dashboard_summary(
         "total_carbon_saved": round(total_saved, 2),
         "eco_points_balance": eco_bal,
         "eco_score": eco_score if eco_score else {"score": 0.0, "last_updated": None},
-        "recent_rewards": recent_rewards
+        "recent_rewards": recent_rewards,
+        "user_level": user_lvl,
+        "badges": badges_list
     }
 
 @router.get("/", response_model=List[schemas.TransactionResponse])

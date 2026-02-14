@@ -20,6 +20,7 @@ class User(Base):
     eco_points_balance = relationship("EcoPointsBalance", back_populates="user", uselist=False)
     eco_points_transactions = relationship("EcoPointsTransaction", back_populates="user")
     eco_score = relationship("EcoScore", back_populates="user", uselist=False)
+    eco_user_level = relationship("EcoUserLevel", back_populates="user", uselist=False)
 
 class Item(Base):
     __tablename__ = "items"
@@ -140,3 +141,33 @@ class EcoScore(Base):
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="eco_score")
+
+class EcoUserLevel(Base):
+    __tablename__ = "eco_user_levels"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+    level = Column(String, default="Beginner")
+    points_required = Column(Integer, default=0)
+    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="eco_user_level")
+
+class Badge(Base):
+    __tablename__ = "badges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, index=True)
+    name = Column(String)
+    description = Column(String, nullable=True)
+
+class UserBadge(Base):
+    __tablename__ = "user_badges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    badge_id = Column(Integer, ForeignKey("badges.id"), index=True)
+    awarded_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+    badge = relationship("Badge")
