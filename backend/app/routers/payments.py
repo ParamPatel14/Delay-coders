@@ -4,7 +4,7 @@ import razorpay
 from .. import models, schemas, dependencies
 from ..database import get_db
 from ..config import settings
-from ..services import carbon
+from ..services import carbon, eco_points
 
 router = APIRouter(
     prefix="/payments",
@@ -111,12 +111,18 @@ def verify_payment(payment_data: schemas.PaymentVerify,
         # Or just pass "Shopping" as the category for carbon calc.
         carbon_category = "Shopping" 
         
-        carbon.calculate_and_record_carbon(
+        carbon_record = carbon.calculate_and_record_carbon(
             db=db,
             user_id=transaction.user_id,
             transaction_id=transaction.id,
             amount=transaction.amount,
             category=carbon_category
+        )
+        eco_points.award_points_for_carbon_saving(
+            db=db,
+            user_id=transaction.user_id,
+            transaction_id=transaction.id,
+            carbon_record_id=carbon_record.id
         )
         
         # Atomic commit for everything: Payment update, Transaction, Carbon Record
@@ -130,4 +136,3 @@ def verify_payment(payment_data: schemas.PaymentVerify,
         # If verification failed, we should probably let the user know?
         # But if the signature was valid, and we failed here, it's a server error.
         raise HTTPException(status_code=500, detail=f"Transaction processing failed: {str(e)}")
-
