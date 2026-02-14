@@ -5,16 +5,14 @@ from .config import settings
 
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-# Create the SQLAlchemy engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-# Create a SessionLocal class
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create a Base class for models
+
 Base = declarative_base()
 
-# Dependency to get the DB session
 def get_db():
     db = SessionLocal()
     try:
