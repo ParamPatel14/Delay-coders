@@ -1,0 +1,42 @@
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from .database import engine, Base, get_db
+from . import models, schemas, dependencies
+from .routers import auth, payments, transactions
+
+# Create the database tables
+models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="GreenZaction API")
+
+app.include_router(auth.router)
+app.include_router(payments.router)
+app.include_router(transactions.router)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # React/Vite default ports
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+@app.get("/protected-route", response_model=schemas.UserOut)
+def protected_route(current_user: models.User = Depends(dependencies.get_current_user)):
+    return current_user
+
+@app.get("/db-check")
+def db_check(db: Session = Depends(get_db)):
+    try:
+        # Try to execute a simple query to check the connection
+        db.execute(text("SELECT 1"))
+        return {"status": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
