@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from .. import models, schemas, dependencies
 from ..database import get_db
 from ..services import user_level, challenges
+from ..services import carbon_credit_service
+from ..services import carbon_credit_blockchain_service as cc_chain
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -73,6 +75,14 @@ def get_dashboard_summary(
         .all()
     streak = db.query(models.EcoStreak).filter(models.EcoStreak.user_id == current_user.id).first()
     challenges_status = challenges.get_user_challenges_status(db, current_user.id)
+    holding = carbon_credit_service.generate_carbon_credits(db, current_user.id)
+    wallet = db.query(models.UserWallet).filter(models.UserWallet.user_id == current_user.id).first()
+    cct_balance = 0.0
+    if wallet and wallet.address:
+        try:
+            cct_balance = float(cc_chain.get_credit_balance(wallet.address))
+        except Exception:
+            cct_balance = 0.0
     leaderboard_rows = db.query(models.EcoPointsBalance, models.User, models.EcoUserLevel)\
         .join(models.User, models.User.id == models.EcoPointsBalance.user_id)\
         .outerjoin(models.EcoUserLevel, models.EcoUserLevel.user_id == models.User.id)\
@@ -99,6 +109,9 @@ def get_dashboard_summary(
         },
         "recent_carbon_records": recent_carbon,
         "total_carbon_saved": round(total_saved, 2),
+        "carbon_saved": round(total_saved, 2),
+        "carbon_credits": float(round(holding.credit_amount or 0.0, 6)),
+        "carbon_credit_tokens": float(round(cct_balance, 6)),
         "eco_points_balance": eco_bal,
         "eco_score": eco_score if eco_score else {"score": 0.0, "last_updated": None},
         "recent_rewards": recent_rewards,

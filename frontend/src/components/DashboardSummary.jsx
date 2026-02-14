@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle, Medal, Flame } from 'lucide-react';
+import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle, Medal, Flame, Coins } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
     <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
@@ -37,6 +37,9 @@ const DashboardSummary = ({ summary }) => {
     const score = summary.eco_score || { score: 0 };
     const userLevel = summary.user_level || { level: 'Beginner', points_required: 0 };
     const streak = summary.streak || { current_streak: 0, longest_streak: 0 };
+    const carbonSaved = summary.carbon_saved ?? summary.total_carbon_saved ?? 0;
+    const carbonCredits = summary.carbon_credits ?? 0;
+    const carbonCreditTokens = summary.carbon_credit_tokens ?? 0;
 
     return (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
@@ -54,7 +57,7 @@ const DashboardSummary = ({ summary }) => {
                 value={`${carbon.total_carbon} kg CO₂`} 
                 icon={Cloud} 
                 color="bg-gray-700"
-                subtext={`Saved: ${summary.total_carbon_saved || 0} kg`}
+                subtext={`Saved: ${carbonSaved} kg`}
             />
 
             <StatCard 
@@ -70,6 +73,13 @@ const DashboardSummary = ({ summary }) => {
                 icon={Trophy} 
                 color="bg-indigo-600" 
                 subtext={`Lifetime: ${points.lifetime_points} pts`}
+            />
+            <StatCard 
+                title="Carbon Credits" 
+                value={`${carbonCredits} CCT`} 
+                icon={Coins} 
+                color="bg-green-700" 
+                subtext={`On-chain: ${carbonCreditTokens} CCT`}
             />
             <StatCard 
                 title="Eco Score" 

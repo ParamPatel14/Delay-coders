@@ -12,7 +12,9 @@
     "verify:amoy": "hardhat verify --network amoy",
     "interact:amoy": "ts-node scripts/interact.ts",
     "deploy:token:amoy": "hardhat run --network amoy scripts/deploy_token.ts",
-    "mint:token:amoy": "ts-node scripts/mint_token.ts"
+    "mint:token:amoy": "ts-node scripts/mint_token.ts",
+    "deploy:cct:amoy": "hardhat run --network amoy scripts/deploy_cct.ts",
+    "mint:cct:amoy": "ts-node scripts/mint_cct.ts"
   },
   "devDependencies": {
     "hardhat": "^2.20.0",

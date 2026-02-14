@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     ECO_TOKEN_CONVERSION_RATE: float = 1.0
     ECO_TOKEN_AUTO_THRESHOLD: int = 100
     ECO_TOKEN_DEMO_MODE: bool = False
+    CARBON_CREDIT_KG_PER_CREDIT: float = 1000.0
+    CARBON_CREDIT_TOKEN_ADDRESS: Optional[str] = None
+    CARBON_CREDIT_OWNER_PRIVATE_KEY: Optional[str] = None
 
     class Config:
         env_file = ".env"

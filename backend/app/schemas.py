@@ -55,6 +55,26 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+class CompanyBase(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+    wallet_address: Optional[str] = None
+
+class CompanyCreate(CompanyBase):
+    password: str
+
+class CompanyLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class CompanyOut(CompanyBase):
+    id: int
+    is_active: bool
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
 class GoogleLogin(BaseModel):
     token: str # ID token from frontend
 
@@ -202,6 +222,9 @@ class DashboardSummary(BaseModel):
     carbon_summary: CarbonFootprintSummary
     recent_carbon_records: List[CarbonRecordResponse]
     total_carbon_saved: float
+    carbon_saved: float | None = None
+    carbon_credits: float | None = None
+    carbon_credit_tokens: float | None = None
     eco_points_balance: Optional[EcoPointsBalanceResponse] = None
     eco_score: Optional[EcoScoreResponse] = None
     recent_rewards: List[EcoPointsTransactionResponse] = []
@@ -233,3 +256,14 @@ class ConvertiblePointsResponse(BaseModel):
     points_available: int
     remainder: int
     threshold: int
+
+class CarbonCreditBalanceResponse(BaseModel):
+    carbon_saved: float
+    carbon_credits: float
+    carbon_credit_tokens: float
+    wallet_address: Optional[str] = None
+
+class CarbonCreditHistoryItem(BaseModel):
+    created_at: datetime
+    carbon_saved: float
+    carbon_credits: float

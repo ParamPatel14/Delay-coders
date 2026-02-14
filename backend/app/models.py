@@ -165,6 +165,26 @@ class UserWallet(Base):
 
     user = relationship("User")
 
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String, nullable=True)
+    name = Column(String, nullable=True)
+    wallet_address = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class CompanyWallet(Base):
+    __tablename__ = "company_wallets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), unique=True, index=True)
+    wallet_address = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class EcoTokenConversion(Base):
     __tablename__ = "eco_token_conversions"
 
@@ -231,3 +251,44 @@ class UserChallengeProgress(Base):
 
     user = relationship("User")
     challenge = relationship("Challenge")
+
+class CarbonCreditHolding(Base):
+    __tablename__ = "carbon_credit_holdings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+    carbon_amount = Column(Float, default=0.0) # kg CO2
+    credit_amount = Column(Float, default=0.0) # credits (tCO2e)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User")
+
+class CarbonCreditListing(Base):
+    __tablename__ = "carbon_credit_listings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    credit_id = Column(Integer, ForeignKey("carbon_savings.id"))
+    seller_user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    credit_amount = Column(Float)
+    price_per_credit = Column(Float)
+    status = Column(String, default="AVAILABLE")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class CarbonCreditPrice(Base):
+    __tablename__ = "carbon_credit_prices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    price_per_credit = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class MarketplaceOrder(Base):
+    __tablename__ = "marketplace_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), index=True)
+    listing_id = Column(Integer, ForeignKey("carbon_credit_listings.id"), index=True)
+    credit_amount = Column(Float)
+    total_price = Column(Float)
+    status = Column(String, default="PENDING")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

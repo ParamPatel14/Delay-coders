@@ -6,6 +6,7 @@ from ..database import get_db
 from ..config import settings
 import os, json
 import httpx
+from ..services import carbon_credit_blockchain_service as cc_chain
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
 
@@ -101,3 +102,17 @@ def get_eco_token_balance(
     except Exception:
         value = 0
     return {"address": rec.address, "balance_wei": value, "balance": value / (10**18)}
+
+@router.get("/cct-balance")
+def get_cct_token_balance(
+    current_user: models.User = Depends(dependencies.get_current_user),
+    db: Session = Depends(get_db)
+):
+    rec = db.query(models.UserWallet).filter(models.UserWallet.user_id == current_user.id).first()
+    if not rec or not rec.address:
+        raise HTTPException(status_code=404, detail="Wallet not connected")
+    try:
+        bal = cc_chain.get_credit_balance(rec.address)
+        return {"address": rec.address, "balance": float(bal)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chain error: {str(e)}")
