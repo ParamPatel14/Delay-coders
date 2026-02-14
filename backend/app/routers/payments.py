@@ -4,6 +4,7 @@ import razorpay
 from .. import models, schemas, dependencies
 from ..database import get_db
 from ..config import settings
+from ..services import carbon
 
 router = APIRouter(
     prefix="/payments",
@@ -83,7 +84,7 @@ def verify_payment(payment_data: schemas.PaymentVerify,
     db_payment.payment_id = payment_data.razorpay_payment_id
     db_payment.signature = payment_data.razorpay_signature
     db_payment.status = "success"
-    db.commit()
+    # db.commit() # Removed to ensure atomicity with transaction and carbon record creation
 
     # Create Transaction Record
     try:
@@ -98,10 +99,35 @@ def verify_payment(payment_data: schemas.PaymentVerify,
             payment_id=db_payment.id
         )
         db.add(transaction)
+        db.flush() # Flush to get the transaction ID
+        db.refresh(transaction)
+
+        # Calculate and record carbon emission
+        # For payments, we might want to categorize them. 
+        # Currently, the category is hardcoded as "payment".
+        # We might want to allow users to select a category during payment in the future.
+        # For now, we'll default to "Shopping" or "Other" if "payment" is not in factors.
+        # Or better, let's map "payment" to "Shopping" for this demo context?
+        # Or just pass "Shopping" as the category for carbon calc.
+        carbon_category = "Shopping" 
+        
+        carbon.calculate_and_record_carbon(
+            db=db,
+            user_id=transaction.user_id,
+            transaction_id=transaction.id,
+            amount=transaction.amount,
+            category=carbon_category
+        )
+        
+        # Atomic commit for everything: Payment update, Transaction, Carbon Record
         db.commit()
+
+        return {"status": "ok", "transaction_id": transaction.id}
+
     except Exception as e:
-        # Log error but don't fail the response as payment is already verified
-        print(f"Error creating transaction: {e}")
-    
-    return {"status": "success", "message": "Payment verified successfully"}
+        db.rollback() # Rollback everything if any step fails
+        print(f"Error processing payment/transaction: {e}")
+        # If verification failed, we should probably let the user know?
+        # But if the signature was valid, and we failed here, it's a server error.
+        raise HTTPException(status_code=500, detail=f"Transaction processing failed: {str(e)}")
 
