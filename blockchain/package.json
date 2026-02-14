@@ -9,7 +9,8 @@
     "node": "hardhat node",
     "balance": "ts-node scripts/balance.ts",
     "deploy:amoy": "hardhat run --network amoy scripts/deploy.ts",
-    "verify:amoy": "hardhat verify --network amoy"
+    "verify:amoy": "hardhat verify --network amoy",
+    "interact:amoy": "ts-node scripts/interact.ts"
   },
   "devDependencies": {
     "hardhat": "^2.20.0",
