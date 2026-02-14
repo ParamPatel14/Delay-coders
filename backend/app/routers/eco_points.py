@@ -5,6 +5,7 @@ from .. import models, schemas, dependencies
 from ..database import get_db
 from ..config import settings
 from ..services import eco_points
+from ..services import logging_service
 from fastapi import status
 
 router = APIRouter(prefix="/eco-points", tags=["eco-points"])
@@ -74,6 +75,7 @@ def convert_points(
         conv = converted[-1]
         res = {"tx_hash": conv.tx_hash}
     db.commit()
+    logging_service.log_event(db, "TOKEN_MINT", current_user.id, f"{res['tx_hash']}")
     return {"tx_hash": res["tx_hash"], "points_converted": total_points if not points else conv.points, "token_amount": total_tokens if not points else conv.token_amount}
 
 @router.get("/convertible", response_model=schemas.ConvertiblePointsResponse)

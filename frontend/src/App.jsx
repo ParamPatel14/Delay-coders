@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
+import CompanyLogin from './components/CompanyLogin';
+import CompanyPanel from './components/CompanyPanel';
+import CompanyDashboard from './components/CompanyDashboard';
+import MarketplacePublic from './components/MarketplacePublic';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -38,6 +42,10 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/company/login" element={<CompanyLogin />} />
+      <Route path="/company/panel" element={<CompanyPanel />} />
+      <Route path="/company/dashboard" element={<CompanyDashboard />} />
+      <Route path="/marketplace" element={<MarketplacePublic />} />
       <Route path="/register" element={<Register />} />
       
       <Route element={<ProtectedRoute />}>

@@ -102,6 +102,8 @@ class CarbonSaving(Base):
     carbon_record_id = Column(Integer, ForeignKey("carbon_records.id"))
     saved_amount = Column(Float) # Amount of CO2 saved in kg
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    owner_type = Column(String, default="USER")  # USER or COMPANY
+    owner_id = Column(Integer, nullable=True)    # user_id or company_id depending on owner_type
 
     user = relationship("User", back_populates="carbon_savings")
     carbon_record = relationship("CarbonRecord", back_populates="carbon_saving")
@@ -185,6 +187,23 @@ class CompanyWallet(Base):
     wallet_address = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+    role = Column(String, default="ADMIN")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class SystemLog(Base):
+    __tablename__ = "system_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 class EcoTokenConversion(Base):
     __tablename__ = "eco_token_conversions"
 
@@ -291,4 +310,17 @@ class MarketplaceOrder(Base):
     credit_amount = Column(Float)
     total_price = Column(Float)
     status = Column(String, default="PENDING")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    razorpay_payment_id = Column(String, nullable=True)
+    tx_hash = Column(String, nullable=True)
+
+class MarketplaceTransaction(Base):
+    __tablename__ = "marketplace_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    buyer_company_id = Column(Integer, ForeignKey("companies.id"), index=True)
+    seller_user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    credit_amount = Column(Float)
+    total_price = Column(Float)
+    blockchain_tx_hash = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

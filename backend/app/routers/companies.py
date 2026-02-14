@@ -5,6 +5,7 @@ from .. import models, schemas
 from ..database import get_db
 from ..config import settings
 from ..services import company_auth_service
+from ..services import logging_service
 from ..database import get_db
 
 router = APIRouter(prefix="/companies", tags=["companies"])
@@ -21,6 +22,7 @@ def register_company(data: schemas.CompanyCreate, db: Session = Depends(get_db))
 def login_company(data: schemas.CompanyLogin, db: Session = Depends(get_db)):
     try:
         token = company_auth_service.login_company(db, data.email, data.password)
+        logging_service.log_event(db, "LOGIN", None, f"company {data.email}")
         return {"access_token": token, "token_type": "bearer"}
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
@@ -70,3 +72,33 @@ def connect_wallet(payload: dict, token: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(rec)
     return {"wallet_address": rec.wallet_address}
+
+@router.get("/dashboard")
+def company_dashboard(token: str, db: Session = Depends(get_db)):
+    comp = get_current_company(token, db)
+    credits_owned = db.query(func.sum(models.MarketplaceOrder.credit_amount))\
+        .filter(models.MarketplaceOrder.company_id == comp.id, models.MarketplaceOrder.status == "COMPLETED")\
+        .scalar() or 0.0
+    try:
+        from ..config import settings
+        kg_per_credit = float(settings.CARBON_CREDIT_KG_PER_CREDIT or 1000.0)
+    except Exception:
+        kg_per_credit = 1000.0
+    total_carbon_offset = float(credits_owned) * kg_per_credit
+    recent = db.query(models.MarketplaceTransaction)\
+        .filter(models.MarketplaceTransaction.buyer_company_id == comp.id)\
+        .order_by(models.MarketplaceTransaction.created_at.desc())\
+        .limit(5).all()
+    recent_purchases = [{
+        "id": r.id,
+        "seller_user_id": r.seller_user_id,
+        "credit_amount": r.credit_amount,
+        "total_price": r.total_price,
+        "blockchain_tx_hash": r.blockchain_tx_hash,
+        "created_at": r.created_at
+    } for r in recent]
+    return {
+        "credits_owned": float(credits_owned),
+        "total_carbon_offset": float(total_carbon_offset),
+        "recent_purchases": recent_purchases
+    }

@@ -54,6 +54,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+    role: Optional[str] = None
+    scope: Optional[str] = None
 
 class CompanyBase(BaseModel):
     email: EmailStr
@@ -72,6 +74,18 @@ class CompanyOut(CompanyBase):
     is_active: bool
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
+class AdminLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class AdminOut(BaseModel):
+    id: int
+    email: EmailStr
+    role: str
+    created_at: datetime
     class Config:
         from_attributes = True
 

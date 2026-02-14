@@ -1,11 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
-from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain, tokens, carbon_credits, companies, marketplace
+from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain, tokens, carbon_credits, companies, marketplace, admin
 from .services import badges, challenges
+from .services import logging_service
+from fastapi.responses import JSONResponse
 
 # Create the database tables
 models.Base.metadata.create_all(bind=engine)
@@ -38,6 +40,17 @@ app.include_router(tokens.router)
 app.include_router(carbon_credits.router)
 app.include_router(companies.router)
 app.include_router(marketplace.router)
+app.include_router(admin.router)
+
+@app.exception_handler(Exception)
+async def _log_exception(request: Request, exc: Exception):
+    db = SessionLocal()
+    try:
+        logging_service.log_event(db, "ERROR", None, str(exc))
+        db.commit()
+    finally:
+        db.close()
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 # Configure CORS
 app.add_middleware(

@@ -6,6 +6,7 @@ import httpx
 from .. import models, schemas, utils
 from ..database import get_db
 from ..config import settings
+from ..services import logging_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -40,6 +41,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = utils.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
+    logging_service.log_event(db, "LOGIN", user.id, f"user {user.email}")
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/google-login", response_model=schemas.Token)

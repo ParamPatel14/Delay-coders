@@ -13,7 +13,7 @@ def create_listing(db: Session, seller_user_id: int, credit_id: int, credit_amou
         seller_user_id=seller_user_id,
         credit_amount=credit_amount,
         price_per_credit=price_per_credit,
-        status="AVAILABLE"
+        status="PENDING"
     )
     db.add(rec)
     db.flush()
