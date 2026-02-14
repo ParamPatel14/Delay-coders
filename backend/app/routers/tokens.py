@@ -16,10 +16,17 @@ def get_token_balance(
     wallet = db.query(models.UserWallet).filter(models.UserWallet.user_id == current_user.id).first()
     if not wallet or not wallet.address:
         raise HTTPException(status_code=400, detail="Wallet not connected")
-    if not settings.CHAIN_RPC_URL or not settings.ECO_TOKEN_ADDRESS:
-        raise HTTPException(status_code=500, detail="Blockchain not configured")
-    bal = blockchain.get_balance(wallet.address)
-    eco = float(Decimal(bal) / Decimal(10**18))
+    if settings.ECO_TOKEN_DEMO_MODE:
+        total = db.query(models.EcoTokenConversion)\
+            .filter(models.EcoTokenConversion.user_id == current_user.id)\
+            .with_entities(models.EcoTokenConversion.token_amount)\
+            .all()
+        eco = float(sum(t[0] for t in total)) if total else 0.0
+    else:
+        if not settings.CHAIN_RPC_URL or not settings.ECO_TOKEN_ADDRESS:
+            raise HTTPException(status_code=500, detail="Blockchain not configured")
+        bal = blockchain.get_balance(wallet.address)
+        eco = float(Decimal(bal) / Decimal(10**18))
     return {"wallet_address": wallet.address, "eco_tokens": eco}
 
 @router.get("/history", response_model=list[schemas.TokenHistoryItem])

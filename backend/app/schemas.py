@@ -228,3 +228,8 @@ class TokenHistoryItem(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ConvertiblePointsResponse(BaseModel):
+    points_available: int
+    remainder: int
+    threshold: int

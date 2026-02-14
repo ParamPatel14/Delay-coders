@@ -10,6 +10,8 @@ import BadgesList from './BadgesList';
 import ChallengesList from './ChallengesList';
 import LeaderboardList from './LeaderboardList';
 import WalletConnect from './WalletConnect';
+import TokensPanel from './TokensPanel';
+import ErrorBoundary from './ErrorBoundary';
 import api from '../api/axios';
 import { LogOut, User, Leaf } from 'lucide-react';
 
@@ -145,6 +147,9 @@ const Dashboard = () => {
                         <Payment onSuccess={handlePaymentSuccess} />
                         
                         <WalletConnect />
+                        <ErrorBoundary>
+                          <TokensPanel />
+                        </ErrorBoundary>
                         
                         {/* Placeholder for Profile/Settings card */}
                         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">

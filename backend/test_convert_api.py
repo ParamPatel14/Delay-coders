@@ -10,8 +10,8 @@ def main():
     db.close()
     token = create_access_token(data={"sub": u.email}, expires_delta=timedelta(minutes=30))
     headers = {"Authorization": f"Bearer {token}"}
-    r = requests.post("http://localhost:8000/eco-points/convert", json={"points": 5}, headers=headers)
-    print("convert", r.status_code, r.json())
+    r = requests.post("http://localhost:8000/eco-points/convert", json={}, headers=headers)
+    print("convert", r.status_code, r.text)
 
 if __name__ == "__main__":
     main()

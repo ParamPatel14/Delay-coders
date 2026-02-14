@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     ECO_TOKEN_ADDRESS: Optional[str] = None
     ECO_TOKEN_OWNER_PRIVATE_KEY: Optional[str] = None
     ECO_TOKEN_CONVERSION_RATE: float = 1.0
+    ECO_TOKEN_AUTO_THRESHOLD: int = 100
+    ECO_TOKEN_DEMO_MODE: bool = False
 
     class Config:
         env_file = ".env"
