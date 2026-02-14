@@ -188,6 +188,13 @@ class BadgeResponse(BaseModel):
     class Config:
         from_attributes = True
  
+class LeaderboardEntryResponse(BaseModel):
+    user_id: int
+    full_name: Optional[str] = None
+    email: EmailStr
+    lifetime_points: int
+    level: str
+ 
 class DashboardSummary(BaseModel):
     total_spent: int
     transaction_count: int
@@ -202,3 +209,4 @@ class DashboardSummary(BaseModel):
     badges: List[BadgeResponse] = []
     streak: Optional[StreakResponse] = None
     challenges: List[ChallengeStatusResponse] = []
+    leaderboard: List[LeaderboardEntryResponse] = []

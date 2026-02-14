@@ -8,6 +8,7 @@ import CarbonList from './CarbonList';
 import RewardsList from './RewardsList';
 import BadgesList from './BadgesList';
 import ChallengesList from './ChallengesList';
+import LeaderboardList from './LeaderboardList';
 import api from '../api/axios';
 import { LogOut, User, Leaf } from 'lucide-react';
 
@@ -24,7 +25,7 @@ const Dashboard = () => {
 
     const fetchSummary = async () => {
         try {
-            const response = await api.get('/transactions/summary');
+            const response = await api.get('/dashboard/summary');
             setSummary(response.data);
         } catch (error) {
             console.error("Failed to fetch dashboard summary:", error);
@@ -125,6 +126,14 @@ const Dashboard = () => {
                                 <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
                              ) : (
                                  <ChallengesList challenges={summary?.challenges} />
+                             )}
+                         </div>
+                         
+                         <div>
+                             {loading ? (
+                                <div className="animate-pulse h-64 bg-white rounded-lg shadow"></div>
+                             ) : (
+                                 <LeaderboardList entries={summary?.leaderboard} />
                              )}
                          </div>
                     </div>
