@@ -4,6 +4,7 @@ from typing import Optional
 from .. import models, schemas, dependencies
 from ..database import get_db
 from ..config import settings
+import os, json
 import httpx
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
@@ -58,12 +59,24 @@ def get_eco_token_balance(
     rec = db.query(models.UserWallet).filter(models.UserWallet.user_id == current_user.id).first()
     if not rec or not rec.address:
         raise HTTPException(status_code=404, detail="Wallet not connected")
-    if not settings.CHAIN_RPC_URL or not settings.ECO_TOKEN_ADDRESS:
+    rpc = settings.CHAIN_RPC_URL or "https://rpc-amoy.polygon.technology"
+    token_addr = settings.ECO_TOKEN_ADDRESS
+    if not token_addr:
+        try:
+            path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "blockchain", "deployments", "eco_token_polygon.json")
+            if os.path.exists(path):
+                with open(path, "r") as f:
+                    data = json.load(f)
+                    token_addr = data.get("address")
+        except Exception:
+            token_addr = None
+    if not token_addr:
         raise HTTPException(status_code=500, detail="RPC or token address not configured")
     addr = rec.address.lower()
     selector = "0x70a08231"  # balanceOf(address)
-    padded = "0x" + "0"*24 + addr[2:].lower()
-    data = selector + padded[2:].rjust(64, "0")
+    hex_addr = addr[2:]
+    padded = hex_addr.rjust(64, "0")
+    data = selector + padded
     body = {
         "jsonrpc": "2.0",
         "method": "eth_call",
@@ -75,7 +88,7 @@ def get_eco_token_balance(
     }
     try:
         with httpx.Client(timeout=10) as client:
-            resp = client.post(settings.CHAIN_RPC_URL, json=body)
+            resp = client.post(rpc, json=body)
             resp.raise_for_status()
             out = resp.json()
     except Exception as e:

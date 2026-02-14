@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
-from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain
+from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain, tokens
 from .services import badges, challenges
 
 # Create the database tables
@@ -34,6 +34,7 @@ app.include_router(gamification.router)
 app.include_router(dashboard.router)
 app.include_router(wallet.router)
 app.include_router(blockchain.router)
+app.include_router(tokens.router)
 
 # Configure CORS
 app.add_middleware(

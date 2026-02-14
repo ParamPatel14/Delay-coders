@@ -215,3 +215,16 @@ class EcoTokenConversionResponse(BaseModel):
     tx_hash: str
     points_converted: int
     token_amount: float
+
+class TokenBalanceResponse(BaseModel):
+    wallet_address: str
+    eco_tokens: float
+
+class TokenHistoryItem(BaseModel):
+    tx_hash: str
+    token_amount: float
+    points: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
