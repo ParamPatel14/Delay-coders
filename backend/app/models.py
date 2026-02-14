@@ -19,6 +19,7 @@ class User(Base):
     carbon_savings = relationship("CarbonSaving", back_populates="user")
     eco_points_balance = relationship("EcoPointsBalance", back_populates="user", uselist=False)
     eco_points_transactions = relationship("EcoPointsTransaction", back_populates="user")
+    eco_score = relationship("EcoScore", back_populates="user", uselist=False)
 
 class Item(Base):
     __tablename__ = "items"
@@ -129,3 +130,13 @@ class EcoPointsTransaction(Base):
 
     user = relationship("User", back_populates="eco_points_transactions")
     transaction = relationship("Transaction", back_populates="eco_points_transaction")
+
+class EcoScore(Base):
+    __tablename__ = "eco_scores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+    score = Column(Float, default=0.0)
+    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="eco_score")

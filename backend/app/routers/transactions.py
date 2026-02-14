@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List
 from .. import models, schemas, dependencies
 from ..database import get_db
-from ..services import carbon, eco_points
+from ..services import carbon, eco_points, reward_rules
 
 router = APIRouter(
     prefix="/transactions",
@@ -45,6 +45,12 @@ def create_transaction(
         category=db_transaction.category
     )
     eco_points.award_points_for_carbon_saving(
+        db=db,
+        user_id=current_user.id,
+        transaction_id=db_transaction.id,
+        carbon_record_id=carbon_record.id
+    )
+    reward_rules.apply_rules_for_transaction(
         db=db,
         user_id=current_user.id,
         transaction_id=db_transaction.id,

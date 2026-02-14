@@ -4,7 +4,7 @@ import razorpay
 from .. import models, schemas, dependencies
 from ..database import get_db
 from ..config import settings
-from ..services import carbon, eco_points
+from ..services import carbon, eco_points, reward_rules
 
 router = APIRouter(
     prefix="/payments",
@@ -119,6 +119,12 @@ def verify_payment(payment_data: schemas.PaymentVerify,
             category=carbon_category
         )
         eco_points.award_points_for_carbon_saving(
+            db=db,
+            user_id=transaction.user_id,
+            transaction_id=transaction.id,
+            carbon_record_id=carbon_record.id
+        )
+        reward_rules.apply_rules_for_transaction(
             db=db,
             user_id=transaction.user_id,
             transaction_id=transaction.id,

@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from .. import models
+from . import eco_score
 
 DEFAULT_MULTIPLIER = 100
 
@@ -42,4 +43,32 @@ def award_points_for_carbon_saving(
     db.add(entry)
     db.flush()
     db.refresh(entry)
+    eco_score.update_eco_score(db, user_id)
+    return entry
+
+def award_points(
+    db: Session,
+    user_id: int,
+    points: int,
+    action_type: str,
+    description: str,
+    transaction_id: int | None = None
+):
+    if points <= 0:
+        return None
+    balance = ensure_balance(db, user_id)
+    balance.total_points = (balance.total_points or 0) + points
+    balance.lifetime_points = (balance.lifetime_points or 0) + points
+    db.add(balance)
+    entry = models.EcoPointsTransaction(
+        user_id=user_id,
+        transaction_id=transaction_id,
+        points=points,
+        action_type=action_type,
+        description=description
+    )
+    db.add(entry)
+    db.flush()
+    db.refresh(entry)
+    eco_score.update_eco_score(db, user_id)
     return entry
