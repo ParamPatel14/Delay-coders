@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -59,4 +59,13 @@ class Transaction(Base):
     
     user = relationship("User", back_populates="transactions")
     payment = relationship("Payment", back_populates="transaction")
+
+class EmissionFactor(Base):
+    __tablename__ = "emission_factors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String, unique=True, index=True)
+    co2_per_unit = Column(Float)  # kg CO2 per unit (e.g., per INR)
+    unit = Column(String, default="kg/INR")
+    description = Column(String, nullable=True)
 

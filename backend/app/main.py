@@ -2,18 +2,28 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from .database import engine, Base, get_db
+from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
-from .routers import auth, payments, transactions
+from .routers import auth, payments, transactions, emissions
 
 # Create the database tables
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="GreenZaction API")
 
+# Seed emission factors on startup
+@app.on_event("startup")
+def startup_event():
+    db = SessionLocal()
+    try:
+        emissions.seed_emission_factors(db)
+    finally:
+        db.close()
+
 app.include_router(auth.router)
 app.include_router(payments.router)
 app.include_router(transactions.router)
+app.include_router(emissions.router)
 
 # Configure CORS
 app.add_middleware(

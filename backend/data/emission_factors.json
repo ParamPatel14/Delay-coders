@@ -1,0 +1,56 @@
+[
+    {
+        "category": "Transport",
+        "co2_per_unit": 0.0005,
+        "unit": "kg/INR",
+        "description": "Public transport, ride-sharing, and fuel costs"
+    },
+    {
+        "category": "Food",
+        "co2_per_unit": 0.0003,
+        "unit": "kg/INR",
+        "description": "Groceries, dining out, and delivery"
+    },
+    {
+        "category": "Shopping",
+        "co2_per_unit": 0.0004,
+        "unit": "kg/INR",
+        "description": "Clothing, electronics, and general retail"
+    },
+    {
+        "category": "Utilities",
+        "co2_per_unit": 0.0008,
+        "unit": "kg/INR",
+        "description": "Electricity, water, and gas bills"
+    },
+    {
+        "category": "Entertainment",
+        "co2_per_unit": 0.0002,
+        "unit": "kg/INR",
+        "description": "Movies, events, and subscriptions"
+    },
+    {
+        "category": "Travel",
+        "co2_per_unit": 0.0006,
+        "unit": "kg/INR",
+        "description": "Flights, hotels, and vacation expenses"
+    },
+    {
+        "category": "Health",
+        "co2_per_unit": 0.0001,
+        "unit": "kg/INR",
+        "description": "Medical expenses and pharmacy"
+    },
+    {
+        "category": "Education",
+        "co2_per_unit": 0.0001,
+        "unit": "kg/INR",
+        "description": "Tuition, books, and courses"
+    },
+    {
+        "category": "Other",
+        "co2_per_unit": 0.0003,
+        "unit": "kg/INR",
+        "description": "Miscellaneous expenses"
+    }
+]

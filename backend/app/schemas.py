@@ -74,3 +74,18 @@ class DashboardSummary(BaseModel):
     total_spent: int
     transaction_count: int
     recent_transactions: List[TransactionResponse]
+
+class EmissionFactorBase(BaseModel):
+    category: str
+    co2_per_unit: float
+    unit: str
+    description: Optional[str] = None
+
+class EmissionFactorCreate(EmissionFactorBase):
+    pass
+
+class EmissionFactorResponse(EmissionFactorBase):
+    id: int
+
+    class Config:
+        from_attributes = True
