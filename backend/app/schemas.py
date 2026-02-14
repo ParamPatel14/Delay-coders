@@ -210,3 +210,8 @@ class DashboardSummary(BaseModel):
     streak: Optional[StreakResponse] = None
     challenges: List[ChallengeStatusResponse] = []
     leaderboard: List[LeaderboardEntryResponse] = []
+ 
+class EcoTokenConversionResponse(BaseModel):
+    tx_hash: str
+    points_converted: int
+    token_amount: float

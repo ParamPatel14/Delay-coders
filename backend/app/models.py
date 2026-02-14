@@ -153,6 +153,31 @@ class EcoUserLevel(Base):
 
     user = relationship("User", back_populates="eco_user_level")
 
+class UserWallet(Base):
+    __tablename__ = "user_wallets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+    address = Column(String, index=True)
+    provider = Column(String, default="MetaMask")
+    network = Column(String, default="polygon-amoy")
+    last_connected = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+
+class EcoTokenConversion(Base):
+    __tablename__ = "eco_token_conversions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    points = Column(Integer)
+    token_amount = Column(Float)
+    tx_hash = Column(String, index=True)
+    status = Column(String, default="minted")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+
 class Badge(Base):
     __tablename__ = "badges"
 

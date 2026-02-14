@@ -9,6 +9,7 @@ import RewardsList from './RewardsList';
 import BadgesList from './BadgesList';
 import ChallengesList from './ChallengesList';
 import LeaderboardList from './LeaderboardList';
+import WalletConnect from './WalletConnect';
 import api from '../api/axios';
 import { LogOut, User, Leaf } from 'lucide-react';
 
@@ -142,6 +143,8 @@ const Dashboard = () => {
                     <div className="space-y-6">
                         <h2 className="text-xl font-semibold text-gray-800">Quick Actions</h2>
                         <Payment onSuccess={handlePaymentSuccess} />
+                        
+                        <WalletConnect />
                         
                         {/* Placeholder for Profile/Settings card */}
                         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">

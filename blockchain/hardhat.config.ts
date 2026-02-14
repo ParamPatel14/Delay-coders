@@ -22,6 +22,11 @@ const config: HardhatUserConfig = {
       url: AMOY_RPC_URL,
       chainId: 80002,
       accounts
+    },
+    polygon: {
+      url: AMOY_RPC_URL,
+      chainId: 80002,
+      accounts
     }
   },
   etherscan: {

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     
     RAZORPAY_KEY_ID: str = "rzp_test_placeholder"
     RAZORPAY_KEY_SECRET: str = "placeholder_secret"
+    CHAIN_RPC_URL: Optional[str] = None
+    ECO_TOKEN_ADDRESS: Optional[str] = None
+    ECO_TOKEN_OWNER_PRIVATE_KEY: Optional[str] = None
+    ECO_TOKEN_CONVERSION_RATE: float = 1.0
 
     class Config:
         env_file = ".env"
