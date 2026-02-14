@@ -1,7 +1,7 @@
 import React from 'react';
-import { Wallet, CreditCard, Activity } from 'lucide-react';
+import { Wallet, CreditCard, Activity, Cloud, Calendar, Leaf } from 'lucide-react';
 
-const StatCard = ({ title, value, icon: Icon, color }) => (
+const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
     <div className="bg-white overflow-hidden shadow rounded-lg">
         <div className="p-5">
             <div className="flex items-center">
@@ -13,6 +13,7 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
                         <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
                         <dd>
                             <div className="text-lg font-medium text-gray-900">{value}</div>
+                            {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
                         </dd>
                     </dl>
                 </div>
@@ -30,26 +31,33 @@ const DashboardSummary = ({ summary }) => {
         currency: 'INR'
     });
 
+    const carbon = summary.carbon_summary || { total_carbon: 0, monthly_carbon: 0, daily_average: 0 };
+
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Financial Stats */}
             <StatCard 
                 title="Total Spent" 
                 value={totalSpent} 
                 icon={Wallet} 
-                color="bg-green-500" 
+                color="bg-green-600" 
             />
+            
+            {/* Carbon Stats */}
             <StatCard 
-                title="Total Transactions" 
-                value={summary.transaction_count} 
-                icon={Activity} 
-                color="bg-blue-500" 
+                title="Carbon Footprint" 
+                value={`${carbon.total_carbon} kg CO₂`} 
+                icon={Cloud} 
+                color="bg-gray-700"
+                subtext={`Avg: ${carbon.daily_average} kg/day`}
             />
-            {/* Placeholder for future stat */}
+
             <StatCard 
-                title="Active Cards" 
-                value="1" 
-                icon={CreditCard} 
-                color="bg-purple-500" 
+                title="Monthly Emission" 
+                value={`${carbon.monthly_carbon} kg CO₂`} 
+                icon={Calendar} 
+                color="bg-orange-500" 
+                subtext="This Month"
             />
         </div>
     );

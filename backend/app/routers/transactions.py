@@ -50,6 +50,8 @@ def create_transaction(
     
     return db_transaction
 
+from datetime import datetime
+
 @router.get("/summary", response_model=schemas.DashboardSummary)
 def get_dashboard_summary(
     current_user: models.User = Depends(dependencies.get_current_user),
@@ -57,8 +59,10 @@ def get_dashboard_summary(
 ):
     """
     Get a summary of the user's transactions for the dashboard.
-    Includes total spent, total count, and last 5 transactions.
+    Includes total spent, total count, last 5 transactions,
+    and carbon footprint stats.
     """
+    # 1. Transaction Stats
     # Total spent (sum of completed debits)
     total_spent = db.query(func.sum(models.Transaction.amount))\
         .filter(
@@ -78,11 +82,50 @@ def get_dashboard_summary(
         .order_by(models.Transaction.created_at.desc())\
         .limit(5)\
         .all()
+        
+    # 2. Carbon Stats
+    # Total Carbon
+    total_carbon = db.query(func.sum(models.CarbonRecord.carbon_emission))\
+        .filter(models.CarbonRecord.user_id == current_user.id)\
+        .scalar() or 0.0
+
+    # Monthly Carbon (Current Month)
+    today = datetime.now()
+    monthly_carbon = db.query(func.sum(models.CarbonRecord.carbon_emission))\
+        .filter(
+            models.CarbonRecord.user_id == current_user.id,
+            func.extract('year', models.CarbonRecord.created_at) == today.year,
+            func.extract('month', models.CarbonRecord.created_at) == today.month
+        ).scalar() or 0.0
+
+    # Daily Average
+    first_record_date = db.query(func.min(models.CarbonRecord.created_at))\
+        .filter(models.CarbonRecord.user_id == current_user.id)\
+        .scalar()
+
+    if first_record_date:
+        days_active = (today - first_record_date).days + 1
+        daily_average = total_carbon / days_active
+    else:
+        daily_average = 0.0
+        
+    # Recent Carbon Records
+    recent_carbon = db.query(models.CarbonRecord)\
+        .filter(models.CarbonRecord.user_id == current_user.id)\
+        .order_by(models.CarbonRecord.created_at.desc())\
+        .limit(5)\
+        .all()
 
     return {
         "total_spent": total_spent,
         "transaction_count": count,
-        "recent_transactions": recent
+        "recent_transactions": recent,
+        "carbon_summary": {
+            "total_carbon": round(total_carbon, 2),
+            "monthly_carbon": round(monthly_carbon, 2),
+            "daily_average": round(daily_average, 2)
+        },
+        "recent_carbon_records": recent_carbon
     }
 
 @router.get("/", response_model=List[schemas.TransactionResponse])

@@ -20,6 +20,15 @@ class UserOut(UserBase):
     class Config:
         from_attributes = True
 
+class CarbonFootprintSummary(BaseModel):
+    total_carbon: float
+    monthly_carbon: float # Current month
+    daily_average: float
+
+class MonthlyCarbonBreakdown(BaseModel):
+    month: str # YYYY-MM
+    total_carbon: float
+
 class CarbonRecordBase(BaseModel):
     category: str
     amount: int
@@ -92,6 +101,8 @@ class DashboardSummary(BaseModel):
     total_spent: int
     transaction_count: int
     recent_transactions: List[TransactionResponse]
+    carbon_summary: CarbonFootprintSummary
+    recent_carbon_records: List[CarbonRecordResponse]
 
 class EmissionFactorBase(BaseModel):
     category: str
