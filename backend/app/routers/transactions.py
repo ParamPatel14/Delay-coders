@@ -137,6 +137,19 @@ def get_dashboard_summary(
     total_saved = db.query(func.sum(models.CarbonSaving.saved_amount))\
         .filter(models.CarbonSaving.user_id == current_user.id)\
         .scalar() or 0.0
+    
+    # Eco Points Balance
+    eco_bal = db.query(models.EcoPointsBalance).filter(models.EcoPointsBalance.user_id == current_user.id).first()
+    
+    # Eco Score
+    eco_score = db.query(models.EcoScore).filter(models.EcoScore.user_id == current_user.id).first()
+    
+    # Recent Rewards
+    recent_rewards = db.query(models.EcoPointsTransaction)\
+        .filter(models.EcoPointsTransaction.user_id == current_user.id)\
+        .order_by(models.EcoPointsTransaction.created_at.desc())\
+        .limit(5)\
+        .all()
 
     return {
         "total_spent": total_spent,
@@ -148,7 +161,10 @@ def get_dashboard_summary(
             "daily_average": round(daily_average, 2)
         },
         "recent_carbon_records": recent_carbon,
-        "total_carbon_saved": round(total_saved, 2)
+        "total_carbon_saved": round(total_saved, 2),
+        "eco_points_balance": eco_bal,
+        "eco_score": eco_score if eco_score else {"score": 0.0, "last_updated": None},
+        "recent_rewards": recent_rewards
     }
 
 @router.get("/", response_model=List[schemas.TransactionResponse])

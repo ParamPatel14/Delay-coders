@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, CreditCard, Activity, Cloud, Calendar, Leaf } from 'lucide-react';
+import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
     <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -33,8 +33,11 @@ const DashboardSummary = ({ summary }) => {
 
     const carbon = summary.carbon_summary || { total_carbon: 0, monthly_carbon: 0, daily_average: 0 };
 
+    const points = summary.eco_points_balance || { total_points: 0, lifetime_points: 0 };
+    const score = summary.eco_score || { score: 0 };
+
     return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Financial Stats */}
             <StatCard 
                 title="Total Spent" 
@@ -58,6 +61,20 @@ const DashboardSummary = ({ summary }) => {
                 icon={Calendar} 
                 color="bg-orange-500" 
                 subtext={`Avg: ${carbon.daily_average} kg/day`}
+            />
+            <StatCard 
+                title="Eco Points" 
+                value={`${points.total_points} pts`} 
+                icon={Trophy} 
+                color="bg-indigo-600" 
+                subtext={`Lifetime: ${points.lifetime_points} pts`}
+            />
+            <StatCard 
+                title="Eco Score" 
+                value={`${score.score || 0}/100`} 
+                icon={GaugeCircle} 
+                color="bg-teal-600" 
+                subtext={`Sustainability score`}
             />
         </div>
     );

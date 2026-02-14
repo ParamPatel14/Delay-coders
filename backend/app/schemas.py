@@ -97,13 +97,7 @@ class TransactionResponse(TransactionBase):
     class Config:
         from_attributes = True
 
-class DashboardSummary(BaseModel):
-    total_spent: int
-    transaction_count: int
-    recent_transactions: List[TransactionResponse]
-    carbon_summary: CarbonFootprintSummary
-    recent_carbon_records: List[CarbonRecordResponse]
-    total_carbon_saved: float # New field
+ 
 
 class EmissionFactorBase(BaseModel):
     category: str
@@ -118,6 +112,13 @@ class EmissionFactorCreate(EmissionFactorBase):
 class EmissionFactorResponse(EmissionFactorBase):
     id: int
 
+    class Config:
+        from_attributes = True
+ 
+class EcoScoreResponse(BaseModel):
+    score: float
+    last_updated: Optional[datetime] = None
+ 
     class Config:
         from_attributes = True
 
@@ -146,3 +147,14 @@ class EcoPointsTransactionResponse(EcoPointsTransactionBase):
 
     class Config:
         from_attributes = True
+ 
+class DashboardSummary(BaseModel):
+    total_spent: int
+    transaction_count: int
+    recent_transactions: List[TransactionResponse]
+    carbon_summary: CarbonFootprintSummary
+    recent_carbon_records: List[CarbonRecordResponse]
+    total_carbon_saved: float
+    eco_points_balance: Optional[EcoPointsBalanceResponse] = None
+    eco_score: Optional[EcoScoreResponse] = None
+    recent_rewards: List[EcoPointsTransactionResponse] = []
