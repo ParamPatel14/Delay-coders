@@ -23,11 +23,15 @@ def ensure_demo_company(db) -> models.Company:
 
 
 def seed_demo_purchases(db, comp: models.Company) -> None:
-    existing_orders = (
-        db.query(models.MarketplaceOrder)
-        .filter(models.MarketplaceOrder.company_id == comp.id)
-        .count()
-    )
+    db.rollback()
+    try:
+        existing_orders = (
+            db.query(models.MarketplaceOrder.id)
+            .filter(models.MarketplaceOrder.company_id == comp.id)
+            .count()
+        )
+    except Exception:
+        existing_orders = 0
     if existing_orders > 0:
         print(f"Company already has {existing_orders} marketplace orders, skipping purchase seeding.")
         return
@@ -53,6 +57,7 @@ def seed_demo_purchases(db, comp: models.Company) -> None:
             credit_amount=credit_amount,
             total_price=total_price,
             status="COMPLETED",
+            tx_hash=None,
         )
         listing.status = "SOLD"
         db.add(order)

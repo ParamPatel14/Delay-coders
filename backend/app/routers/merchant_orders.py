@@ -84,6 +84,15 @@ def generate_order_qr(
         )
         db.add(order)
 
+    carbon_emission, carbon_saving = carbon.estimate_carbon_preview(
+        db=db,
+        amount=amount_paisa,
+        category="Shopping",
+    )
+    eco_points_estimate = 0
+    if carbon_saving > 0:
+        eco_points_estimate = int(round(carbon_saving * eco_points.DEFAULT_MULTIPLIER))
+
     db.commit()
 
     encoded = qr_service.generate_qr_base64(json.dumps(qr_data, separators=(",", ":")))
@@ -92,6 +101,8 @@ def generate_order_qr(
     return {
         "qr_code_url": qr_code_url,
         "qr_data": qr_data,
+        "carbon_estimate_kg": carbon_emission,
+        "eco_points_estimate": eco_points_estimate,
     }
 
 

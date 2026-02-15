@@ -12,11 +12,14 @@ const CompanyPanel = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderId, setOrderId] = useState('');
-  const [posItems, setPosItems] = useState([{ name: '', quantity: 1, price: '' }]);
-  const [posAmount, setPosAmount] = useState('');
+  const [posCategory, setPosCategory] = useState('Groceries');
+  const [posItems, setPosItems] = useState([{ name: 'Milk (1L)', quantity: 1, price: '60' }]);
+  const [posAmount, setPosAmount] = useState('60.00');
   const [qrImage, setQrImage] = useState('');
   const [qrError, setQrError] = useState('');
   const [qrLoading, setQrLoading] = useState(false);
+  const [carbonEstimate, setCarbonEstimate] = useState(null);
+  const [ecoPointsEstimate, setEcoPointsEstimate] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -121,6 +124,28 @@ const CompanyPanel = () => {
     }
   };
 
+  const itemCatalog = {
+    Groceries: [
+      'Milk (1L)',
+      'Bread Loaf',
+      'Eggs (12pc)',
+      'Rice (1kg)',
+      'Vegetable Basket',
+    ],
+    Electronics: [
+      'USB-C Cable',
+      'Phone Charger',
+      'Bluetooth Earbuds',
+      'Power Bank',
+    ],
+    Clothing: [
+      'T-Shirt',
+      'Jeans',
+      'Hoodie',
+      'Sneakers',
+    ],
+  };
+
   const recalcPosAmount = (items) => {
     const total = items.reduce((sum, it) => {
       const q = Number(it.quantity) || 0;
@@ -156,6 +181,8 @@ const CompanyPanel = () => {
   const generateQr = async () => {
     setQrError('');
     setQrImage('');
+    setCarbonEstimate(null);
+    setEcoPointsEstimate(null);
     const token = localStorage.getItem('company_token');
     if (!token) {
       setQrError('Merchant token missing, please sign in again.');
@@ -188,6 +215,12 @@ const CompanyPanel = () => {
       setOrderId(finalOrderId);
       setPosAmount(total.toFixed(2));
       setQrImage(res.data.qr_code_url);
+      if (typeof res.data.carbon_estimate_kg === 'number') {
+        setCarbonEstimate(res.data.carbon_estimate_kg);
+      }
+      if (typeof res.data.eco_points_estimate === 'number') {
+        setEcoPointsEstimate(res.data.eco_points_estimate);
+      }
     } catch (err) {
       const msg = err?.response?.data?.detail || 'Failed to generate QR.';
       setQrError(msg);
@@ -349,15 +382,31 @@ const CompanyPanel = () => {
             {qrError && <div className="mb-3 text-xs sm:text-sm text-amber-600">{qrError}</div>}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 space-y-3">
-                <div>
-                  <label className="block text-sm text-slate-700 mb-1">Order ID</label>
-                  <input
-                    type="text"
-                    value={orderId}
-                    onChange={(e) => setOrderId(e.target.value)}
-                    placeholder="e.g., ORD-1001 (leave blank to auto-generate)"
-                    className="w-full border border-emerald-100 bg-white rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm text-slate-700 mb-1">Order ID</label>
+                    <input
+                      type="text"
+                      value={orderId}
+                      onChange={(e) => setOrderId(e.target.value)}
+                      placeholder="e.g., ORD-1001 (leave blank to auto-generate)"
+                      className="w-full border border-emerald-100 bg-white rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-700 mb-1">Item category</label>
+                    <select
+                      className="w-full border border-emerald-100 bg-white rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      value={posCategory}
+                      onChange={(e) => setPosCategory(e.target.value)}
+                    >
+                      {Object.keys(itemCatalog).map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -373,12 +422,24 @@ const CompanyPanel = () => {
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                     {posItems.map((item, idx) => (
                       <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                        <input
-                          type="text"
-                          placeholder="Item name"
+                        <select
+                          className="col-span-5 border border-emerald-100 bg-white rounded-lg px-2.5 py-1.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                           value={item.name}
                           onChange={(e) => updatePosItem(idx, 'name', e.target.value)}
-                          className="col-span-6 border border-emerald-100 bg-white rounded-lg px-2.5 py-1.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        >
+                          <option value="">Select item</option>
+                          {(itemCatalog[posCategory] || []).map((label) => (
+                            <option key={label} value={label}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          placeholder="Or type item name"
+                          value={item.name}
+                          onChange={(e) => updatePosItem(idx, 'name', e.target.value)}
+                          className="col-span-4 border border-emerald-100 bg-white rounded-lg px-2.5 py-1.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                         />
                         <input
                           type="number"
@@ -414,6 +475,12 @@ const CompanyPanel = () => {
                     ₹{posAmount || '0.00'}
                   </div>
                 </div>
+                {carbonEstimate !== null && ecoPointsEstimate !== null && (
+                  <div className="mt-2 rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 text-xs text-emerald-900">
+                    <div>Estimated carbon: {carbonEstimate.toFixed(2)} kg CO₂</div>
+                    <div>Estimated eco points for shopper: {ecoPointsEstimate}</div>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={generateQr}

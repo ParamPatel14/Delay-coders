@@ -1,11 +1,36 @@
 from sqlalchemy.orm import Session
 from .. import models
 
+
+def estimate_carbon_preview(
+    db: Session,
+    amount: int,
+    category: str,
+):
+    factor = db.query(models.EmissionFactor).filter(
+        models.EmissionFactor.category == category
+    ).first()
+    if not factor:
+        factor = db.query(models.EmissionFactor).filter(
+            models.EmissionFactor.category == "Other"
+        ).first()
+    emission_factor_value = factor.co2_per_unit if factor else 0.0003
+    amount_inr = amount / 100.0
+    carbon_emission = amount_inr * emission_factor_value
+    carbon_saving = 0.0
+    if factor and factor.baseline_co2_per_unit:
+        baseline_emission = amount_inr * factor.baseline_co2_per_unit
+        saved_amount = baseline_emission - carbon_emission
+        if saved_amount > 0:
+            carbon_saving = saved_amount
+    return carbon_emission, carbon_saving
+
+
 def calculate_and_record_carbon(
-    db: Session, 
-    user_id: int, 
-    transaction_id: int, 
-    amount: int, 
+    db: Session,
+    user_id: int,
+    transaction_id: int,
+    amount: int,
     category: str
 ):
     """
