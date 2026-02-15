@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
-from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain, tokens, carbon_credits, companies, marketplace, admin
+from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain, tokens, carbon_credits, companies, marketplace, admin, wallets, merchant_orders
 from .services import badges, challenges, marketplace_service
 from .services import logging_service
 from fastapi.responses import JSONResponse
@@ -36,6 +36,9 @@ app.include_router(achievements.router)
 app.include_router(gamification.router)
 app.include_router(dashboard.router)
 app.include_router(wallet.router)
+app.include_router(wallets.router)
+app.include_router(merchant_orders.router)
+app.include_router(merchant_orders.upi_router)
 app.include_router(blockchain.router)
 app.include_router(tokens.router)
 app.include_router(carbon_credits.router)

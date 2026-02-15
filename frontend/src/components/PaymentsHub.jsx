@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../api/axios';
 import { CreditCard, ScanLine, Users, Phone, Tv, Banknote, Home, ShieldCheck, HandCoins, GraduationCap, ShoppingCart, Car, Plane, Package, Flame, Battery } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -85,6 +85,101 @@ const PaymentsHub = () => {
   const [providerSearch, setProviderSearch] = useState('');
   const [upiQrText, setUpiQrText] = useState('');
   const [upiId, setUpiId] = useState('');
+  const [upiAccount, setUpiAccount] = useState(null);
+  const [upiHistory, setUpiHistory] = useState([]);
+  const [upiLoading, setUpiLoading] = useState(false);
+  const [upiError, setUpiError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [walletInfo, setWalletInfo] = useState(null);
+  const [walletTx, setWalletTx] = useState([]);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState('');
+  const [transferUpi, setTransferUpi] = useState('');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [transferMessage, setTransferMessage] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadUpi = async () => {
+      setUpiLoading(true);
+      setUpiError('');
+      try {
+        const [accountRes, historyRes] = await Promise.all([
+          api.get('/payments/upi/account'),
+          api.get('/payments/upi/history')
+        ]);
+        if (!cancelled) {
+          setUpiAccount(accountRes.data);
+          setUpiHistory(historyRes.data || []);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setUpiError('Unable to load UPI details right now.');
+        }
+      } finally {
+        if (!cancelled) {
+          setUpiLoading(false);
+        }
+      }
+    };
+    loadUpi();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleCopyVpa = async () => {
+    if (!upiAccount || !upiAccount.vpa) return;
+    try {
+      await navigator.clipboard.writeText(upiAccount.vpa);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (e) {
+    }
+  };
+
+  const refreshWallet = async () => {
+    setWalletLoading(true);
+    setWalletError('');
+    try {
+      const [infoRes, txRes] = await Promise.all([
+        api.get('/wallets/me'),
+        api.get('/wallets/transactions'),
+      ]);
+      setWalletInfo(infoRes.data);
+      setWalletTx(txRes.data || []);
+    } catch (e) {
+      setWalletError('Unable to load wallet right now.');
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshWallet();
+  }, []);
+
+  const handleTransfer = async () => {
+    if (!transferUpi || !transferAmount) return;
+    setTransferLoading(true);
+    setTransferMessage('');
+    try {
+      const amountPaisa = Math.round(Number(transferAmount) * 100);
+      await api.post('/wallets/transfer', {
+        receiver_upi_id: transferUpi.trim(),
+        amount: amountPaisa,
+      });
+      setTransferMessage('Transfer successful');
+      setTransferUpi('');
+      setTransferAmount('');
+      await refreshWallet();
+    } catch (e) {
+      setTransferMessage('Transfer failed');
+    } finally {
+      setTransferLoading(false);
+    }
+  };
 
   const pickTile = (tile) => {
     setSelected(tile.key);
@@ -272,252 +367,487 @@ const PaymentsHub = () => {
 
         <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.5),transparent_58%),radial-gradient(circle_at_120%_0,rgba(52,211,153,0.45),transparent_60%)] shadow-sm">
           <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-slate-900 tracking-tight">Details</CardTitle>
-          </CardHeader>
-          <CardContent>
+            <CardHeader>
+              <CardTitle className="text-slate-900 tracking-tight">Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {category === 'Shopping' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Shopping Type</label>
+                  <div className="flex gap-2">
+                    {shoppingSub.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        className={`px-3 py-2 rounded-xl border text-sm ${subcategory === opt ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
+                        onClick={() => {
+                          setSubcategory(opt);
+                          const presets = presetMap.Shopping[opt];
+                          if (presets && presets.length) setAmount(presets[0]);
+                          setStep('providers');
+                          setProvider('');
+                        }}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {category === 'Shopping' && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Shopping Type</label>
-              <div className="flex gap-2">
-                {shoppingSub.map((opt) => (
+              {category === 'Travel' && (
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-sm text-slate-200">Sustainable option</span>
                   <button
-                    key={opt}
                     type="button"
-                    className={`px-3 py-2 rounded-xl border text-sm ${subcategory === opt ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
-                    onClick={() => {
-                      setSubcategory(opt);
-                      const presets = presetMap.Shopping[opt];
-                      if (presets && presets.length) setAmount(presets[0]);
-                      setStep('providers');
-                      setProvider('');
-                    }}
+                    className={`px-3 py-1 rounded-full border text-xs ${
+                      sustainable
+                        ? 'ring-1 ring-emerald-500 border-emerald-400/70 text-emerald-100 bg-emerald-500/10'
+                        : 'border-white/10 bg-slate-950/70 hover:bg-slate-900/80 text-slate-200'
+                    }`}
+                    onClick={() => setSustainable(!sustainable)}
                   >
-                    {opt}
+                    {sustainable ? 'Enabled' : 'Enable'}
                   </button>
-                ))}
+                </div>
+              )}
+
+              {step === 'providers' && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-200">Select Provider</span>
+                    <Input
+                      type="text"
+                      placeholder="Search providers"
+                      value={providerSearch}
+                      onChange={(e) => setProviderSearch(e.target.value)}
+                      className="w-40 sm:w-56 bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {availableProviders.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className={`px-3 py-2 rounded-xl border text-sm text-left ${
+                          provider === p
+                            ? 'border-emerald-400/80 bg-emerald-500/10 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.55)]'
+                            : 'border-white/10 bg-slate-950/70 hover:bg-slate-900/80 text-slate-100'
+                        }`}
+                        onClick={() => {
+                          setProvider(p);
+                          setStep('details');
+                        }}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {provider && (
+                <div className="mb-4">
+                  <div className="text-sm text-slate-300 mb-1">Provider</div>
+                  <div className="flex items-center justify-between bg-slate-950/70 border border-slate-700 rounded-xl px-3 py-2">
+                    <span className="text-sm font-medium text-slate-50">{provider}</span>
+                    <button
+                      type="button"
+                      className="text-xs text-emerald-300 hover:text-emerald-200"
+                      onClick={() => setStep('providers')}
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selected === 'upi_qr' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-200 mb-1">UPI QR Code Text</label>
+                  <textarea
+                    className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm h-24 bg-slate-950/80 text-slate-100 placeholder:text-slate-500"
+                    placeholder="upi://pay?pa=merchant@upi&pn=Merchant&am=500&cu=INR"
+                    value={upiQrText}
+                    onChange={(e) => {
+                      setUpiQrText(e.target.value);
+                      parseUpiQr(e.target.value);
+                    }}
+                  />
+                </div>
+              )}
+
+              {selected === 'upi_id' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-200 mb-1">UPI ID</label>
+                  <Input
+                    type="text"
+                    placeholder="example@bank"
+                    value={upiId}
+                    onChange={(e) => {
+                      const val = e.target.value.trim();
+                      setUpiId(val);
+                      setProvider(val);
+                    }}
+                    className="bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Enter the recipient UPI ID (e.g., merchant@upi). This is simulated and will be recorded with the payment.</p>
+                </div>
+              )}
+
+              {category && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  {(subcategory === 'Electricity' || category === 'Utilities') && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Consumer Number</label>
+                        <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 1234567890" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Billing Unit</label>
+                        <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 4402" />
+                      </div>
+                    </>
+                  )}
+                  {category === 'Gas' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Connection ID</label>
+                        <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 9876543210" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Registered Mobile</label>
+                        <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 9999999999" />
+                      </div>
+                    </>
+                  )}
+                  {category === 'Travel' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Travel Mode</label>
+                        <select
+                          className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm bg-white text-slate-900"
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                        >
+                          <option value="">Select</option>
+                          <option value="Flights">Flights</option>
+                          <option value="Train">Train</option>
+                          <option value="Bus">Bus</option>
+                          <option value="Hotel">Hotel</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">PNR/Booking ID</label>
+                        <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., ABC1234567" />
+                      </div>
+                    </>
+                  )}
+                  {category === 'Shopping' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Order ID</label>
+                        <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., ORD-001234" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-1">Merchant</label>
+                        <select
+                          className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm bg-white text-slate-900"
+                          value={provider}
+                          onChange={(e) => setProvider(e.target.value)}
+                        >
+                          <option value="">Select</option>
+                          {(providerMap.Shopping[subcategory] || []).map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div className="mb-4">{renderPresets()}</div>
+
+              <div className="mb-4">
+                <label htmlFor="amount" className="block text-sm font-medium text-slate-900 mb-1">Amount (INR)</label>
+                <div className="relative rounded-xl">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-emerald-700 sm:text-sm">₹</span>
+                  </div>
+                  <Input
+                    type="number"
+                    id="amount"
+                    className="block w-full pl-7 pr-12 bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                  />
+                </div>
               </div>
-            </div>
-          )}
 
-          {category === 'Travel' && (
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm text-slate-200">Sustainable option</span>
-              <button
-                type="button"
-                className={`px-3 py-1 rounded-full border text-xs ${
-                  sustainable
-                    ? 'ring-1 ring-emerald-500 border-emerald-400/70 text-emerald-100 bg-emerald-500/10'
-                    : 'border-white/10 bg-slate-950/70 hover:bg-slate-900/80 text-slate-200'
-                }`}
-                onClick={() => setSustainable(!sustainable)}
-              >
-                {sustainable ? 'Enabled' : 'Enable'}
-              </button>
-            </div>
-          )}
-
-          {step === 'providers' && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-200">Select Provider</span>
+              <div className="mb-4">
+                <label htmlFor="contact" className="block text-sm font-medium text-slate-900 mb-1">Phone Number</label>
                 <Input
-                  type="text"
-                  placeholder="Search providers"
-                  value={providerSearch}
-                  onChange={(e) => setProviderSearch(e.target.value)}
-                  className="w-40 sm:w-56 bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                  type="tel"
+                  id="contact"
+                  className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
+                  placeholder="9999999999"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
                 />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {availableProviders.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`px-3 py-2 rounded-xl border text-sm text-left ${
-                      provider === p
-                        ? 'border-emerald-400/80 bg-emerald-500/10 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.55)]'
-                        : 'border-white/10 bg-slate-950/70 hover:bg-slate-900/80 text-slate-100'
-                    }`}
-                    onClick={() => {
-                      setProvider(p);
-                      setStep('details');
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {provider && (
-            <div className="mb-4">
-              <div className="text-sm text-slate-300 mb-1">Provider</div>
-              <div className="flex items-center justify-between bg-slate-950/70 border border-slate-700 rounded-xl px-3 py-2">
-                <span className="text-sm font-medium text-slate-50">{provider}</span>
-                <button
+              <Button
+                onClick={payNow}
+                disabled={loading || !category}
+                className="relative w-full flex justify-center rounded-[9999px] bg-emerald-500/25 text-emerald-100 border border-emerald-400/70 shadow-[0_0_26px_rgba(16,185,129,0.7)] hover:bg-emerald-400/35 disabled:opacity-50"
+              >
+                <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.55),transparent_55%)] opacity-60 mix-blend-screen" />
+                <span className="relative">
+                  {loading ? 'Processing...' : 'Pay Now'}
+                </span>
+              </Button>
+              <p className="text-xs text-center text-slate-400 mt-2">Processed by GreenZaction Pay</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-slate-900 tracking-tight">Your EcoPay UPI ID</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upiAccount ? (
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">Linked UPI handle</div>
+                    {copied && <span className="text-[11px] text-emerald-600">Copied</span>}
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-mono text-sm sm:text-base text-slate-900 truncate">{upiAccount.vpa}</div>
+                      {upiAccount.display_name && (
+                        <div className="text-xs text-slate-500 mt-1 truncate">{upiAccount.display_name}</div>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleCopyVpa}
+                      className="px-3 h-8 rounded-full border border-emerald-200 text-xs font-medium text-emerald-700 bg-white hover:bg-emerald-50"
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-slate-500">
+                  {upiLoading ? 'Loading your UPI ID...' : upiError || 'UPI ID is not available yet.'}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-slate-900 tracking-tight">UPI Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upiLoading && !upiHistory.length && (
+                <div className="text-sm text-slate-500">Loading your recent UPI activity...</div>
+              )}
+              {!upiLoading && upiError && (
+                <div className="text-sm text-rose-500">{upiError}</div>
+              )}
+              {!upiLoading && !upiError && upiHistory.length === 0 && (
+                <div className="text-sm text-slate-500">No UPI payments yet. Your next payment will appear here.</div>
+              )}
+              {upiHistory.length > 0 && (
+                <div className="space-y-3">
+                  {upiHistory.slice(0, 6).map((item) => {
+                    const isOutgoing = upiAccount && item.payer_vpa === upiAccount.vpa;
+                    const sign = isOutgoing ? '-' : '+';
+                    const amountInr = (item.amount / 100).toFixed(2);
+                    const peer = isOutgoing ? item.payee_vpa : item.payer_vpa;
+                    return (
+                      <div
+                        key={item.request_id}
+                        className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white px-3 py-2"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${
+                                isOutgoing ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+                              }`}
+                            >
+                              {isOutgoing ? 'Paid' : 'Received'}
+                            </span>
+                            <span className="text-xs text-slate-500 truncate max-w-[160px]">{peer}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-1">
+                            {item.created_at ? new Date(item.created_at).toLocaleString() : ''}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div
+                            className={`text-sm font-semibold ${
+                              isOutgoing ? 'text-rose-600' : 'text-emerald-700'
+                            }`}
+                          >
+                            {sign}₹{amountInr}
+                          </div>
+                          <div
+                            className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] ${
+                              item.status === 'COMPLETED'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-amber-50 text-amber-700'
+                            }`}
+                          >
+                            {item.status}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-slate-900 tracking-tight">Wallet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {walletLoading && !walletInfo && (
+                <div className="text-sm text-slate-500">Loading wallet...</div>
+              )}
+              {!walletLoading && walletError && (
+                <div className="text-sm text-rose-500">{walletError}</div>
+              )}
+              {walletInfo && (
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-slate-400 mb-1">Linked UPI</div>
+                  <div className="font-mono text-sm text-slate-900 mb-3">{walletInfo.upi_id}</div>
+                  <div className="text-xs uppercase tracking-wide text-slate-400 mb-1">Balance</div>
+                  <div className="text-2xl font-semibold text-emerald-700">
+                    ₹{(walletInfo.balance / 100).toFixed(2)}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-slate-900 tracking-tight">Send via UPI</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-1">Recipient UPI ID</label>
+                  <Input
+                    type="text"
+                    value={transferUpi}
+                    onChange={(e) => setTransferUpi(e.target.value)}
+                    placeholder="friend@ecopay"
+                    className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-1">Amount (INR)</label>
+                  <Input
+                    type="number"
+                    value={transferAmount}
+                    onChange={(e) => setTransferAmount(e.target.value)}
+                    placeholder="100"
+                    className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+                <Button
                   type="button"
-                  className="text-xs text-emerald-300 hover:text-emerald-200"
-                  onClick={() => setStep('providers')}
+                  onClick={handleTransfer}
+                  disabled={transferLoading || !transferUpi || !transferAmount}
+                  className="w-full rounded-full bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60"
                 >
-                  Change
-                </button>
+                  {transferLoading ? 'Sending...' : 'Send'}
+                </Button>
+                {transferMessage && (
+                  <div className="text-xs text-center text-slate-500">{transferMessage}</div>
+                )}
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
 
-          {selected === 'upi_qr' && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-200 mb-1">UPI QR Code Text</label>
-              <textarea
-                className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm h-24 bg-slate-950/80 text-slate-100 placeholder:text-slate-500"
-                placeholder="upi://pay?pa=merchant@upi&pn=Merchant&am=500&cu=INR"
-                value={upiQrText}
-                onChange={(e) => {
-                  setUpiQrText(e.target.value);
-                  parseUpiQr(e.target.value);
-                }}
-              />
-            </div>
-          )}
-          
-          {selected === 'upi_id' && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-200 mb-1">UPI ID</label>
-              <Input
-                type="text"
-                placeholder="example@bank"
-                value={upiId}
-                onChange={(e) => {
-                  const val = e.target.value.trim();
-                  setUpiId(val);
-                  setProvider(val);
-                }}
-                className="bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
-              />
-              <p className="text-xs text-slate-400 mt-1">Enter the recipient UPI ID (e.g., merchant@upi). This is simulated and will be recorded with the payment.</p>
-            </div>
-          )}
-
-          {/* Simulated account details (mimic typical provider forms) */}
-          {category && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              {(subcategory === 'Electricity' || category === 'Utilities') && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Consumer Number</label>
-                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 1234567890" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Billing Unit</label>
-                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 4402" />
-                  </div>
-                </>
+          <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="text-slate-900 tracking-tight">Wallet UPI Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {walletLoading && !walletTx.length && (
+                <div className="text-sm text-slate-500">Loading wallet transactions...</div>
               )}
-              {category === 'Gas' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Connection ID</label>
-                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 9876543210" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Registered Mobile</label>
-                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 9999999999" />
-                  </div>
-                </>
+              {!walletLoading && walletTx.length === 0 && !walletError && (
+                <div className="text-sm text-slate-500">No wallet transfers yet.</div>
               )}
-              {category === 'Travel' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Travel Mode</label>
-                    <select
-                      className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm bg-white text-slate-900"
-                      value={subcategory}
-                      onChange={(e) => setSubcategory(e.target.value)}
-                    >
-                      <option value="">Select</option>
-                      <option value="Flights">Flights</option>
-                      <option value="Train">Train</option>
-                      <option value="Bus">Bus</option>
-                      <option value="Hotel">Hotel</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">PNR/Booking ID</label>
-                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., ABC1234567" />
-                  </div>
-                </>
+              {!walletLoading && walletTx.length > 0 && (
+                <div className="space-y-3">
+                  {walletTx.slice(0, 6).map((t) => {
+                    const isOutgoing = walletInfo && t.sender_upi_id === walletInfo.upi_id;
+                    const sign = isOutgoing ? '-' : '+';
+                    const amountInr = (t.amount / 100).toFixed(2);
+                    const peer = isOutgoing ? t.receiver_upi_id : t.sender_upi_id;
+                    return (
+                      <div
+                        key={t.transaction_id}
+                        className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white px-3 py-2"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${
+                                isOutgoing ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+                              }`}
+                            >
+                              {isOutgoing ? 'Sent' : 'Received'}
+                            </span>
+                            <span className="text-xs text-slate-500 truncate max-w-[160px]">{peer}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-1">
+                            {t.created_at ? new Date(t.created_at).toLocaleString() : ''}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div
+                            className={`text-sm font-semibold ${
+                              isOutgoing ? 'text-rose-600' : 'text-emerald-700'
+                            }`}
+                          >
+                            {sign}₹{amountInr}
+                          </div>
+                          <div
+                            className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] ${
+                              t.status === 'SUCCESS'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : t.status === 'PENDING'
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-rose-50 text-rose-700'
+                            }`}
+                          >
+                            {t.status}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-              {category === 'Shopping' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Order ID</label>
-                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., ORD-001234" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-1">Merchant</label>
-                    <select
-                      className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm bg-white text-slate-900"
-                      value={provider}
-                      onChange={(e) => setProvider(e.target.value)}
-                    >
-                      <option value="">Select</option>
-                      {(providerMap.Shopping[subcategory] || []).map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          <div className="mb-4">{renderPresets()}</div>
-
-          <div className="mb-4">
-            <label htmlFor="amount" className="block text-sm font-medium text-slate-900 mb-1">Amount (INR)</label>
-            <div className="relative rounded-xl">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-emerald-700 sm:text-sm">₹</span>
-              </div>
-              <Input
-                type="number"
-                id="amount"
-                className="block w-full pl-7 pr-12 bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="contact" className="block text-sm font-medium text-slate-900 mb-1">Phone Number</label>
-            <Input
-              type="tel"
-              id="contact"
-              className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
-              placeholder="9999999999"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-            />
-          </div>
-
-          <Button
-            onClick={payNow}
-            disabled={loading || !category}
-            className="relative w-full flex justify-center rounded-[9999px] bg-emerald-500/25 text-emerald-100 border border-emerald-400/70 shadow-[0_0_26px_rgba(16,185,129,0.7)] hover:bg-emerald-400/35 disabled:opacity-50"
-          >
-            <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.55),transparent_55%)] opacity-60 mix-blend-screen" />
-            <span className="relative">
-              {loading ? 'Processing...' : 'Pay Now'}
-            </span>
-          </Button>
-          <p className="text-xs text-center text-slate-400 mt-2">Processed by GreenZaction Pay</p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

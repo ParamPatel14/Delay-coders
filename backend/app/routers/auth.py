@@ -6,7 +6,7 @@ import httpx
 from .. import models, schemas, utils
 from ..database import get_db
 from ..config import settings
-from ..services import logging_service
+from ..services import logging_service, wallet_service, upi_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,6 +23,9 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         full_name=user.full_name
     )
     db.add(db_user)
+    db.flush()
+    upi_acc = upi_service.get_or_create_user_upi(db, db_user)
+    wallet_service.create_wallet(db, "USER", db_user.id, upi_acc.vpa)
     db.commit()
     db.refresh(db_user)
     return db_user
@@ -70,6 +73,9 @@ async def google_login(login_data: schemas.GoogleLogin, db: Session = Depends(ge
             is_active=True
         )
         db.add(user)
+        db.flush()
+        upi_acc = upi_service.get_or_create_user_upi(db, user)
+        wallet_service.create_wallet(db, "USER", user.id, upi_acc.vpa)
         db.commit()
         db.refresh(user)
         

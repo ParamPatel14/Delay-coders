@@ -71,13 +71,22 @@ const Dashboard = () => {
                                 <User className="h-3.5 w-3.5 mr-2 text-emerald-500" />
                                 <span className="truncate max-w-[180px]">{user?.full_name || user?.email}</span>
                             </div>
-                            <button
-                                onClick={() => navigate(company ? '/company/panel' : '/company/login')}
-                                className="hidden md:inline-flex items-center px-3 py-2 border border-emerald-100 text-xs font-medium rounded-lg text-emerald-900 bg-white hover:bg-emerald-50 shadow-sm"
-                            >
-                                <Building2 className="h-3.5 w-3.5 mr-2 text-emerald-400" />
-                                Company
-                            </button>
+                            <div className="hidden md:inline-flex items-center bg-white border border-emerald-100 rounded-full px-1 py-0.5 text-[11px] shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/dashboard')}
+                                    className="px-2 py-1 rounded-full font-medium transition text-emerald-900 bg-emerald-50 border border-emerald-200"
+                                >
+                                    User
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => navigate(company ? '/company/dashboard' : '/company/login')}
+                                    className="px-2 py-1 rounded-full font-medium transition text-slate-500 hover:text-emerald-800"
+                                >
+                                    Merchant
+                                </button>
+                            </div>
                             <button
                                 onClick={() => navigate('/pay')}
                                 className="inline-flex items-center px-3.5 py-2 border border-emerald-500/60 text-xs font-semibold rounded-[20px] text-white bg-emerald-500 hover:bg-emerald-600 shadow-sm"

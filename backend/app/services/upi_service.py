@@ -156,3 +156,57 @@ def get_history_for_vpa(db: Session, vpa: str) -> list[models.UpiPayment]:
         .all()
     )
 
+
+def create_transaction(
+    db: Session,
+    sender_upi: str,
+    receiver_upi: str,
+    amount: int,
+) -> models.UpiTransaction:
+    if amount <= 0:
+        raise ValueError("Amount must be positive")
+    tx_id = f"UPITXN_{uuid.uuid4().hex[:18]}"
+    rec = models.UpiTransaction(
+        transaction_id=tx_id,
+        sender_upi_id=sender_upi,
+        receiver_upi_id=receiver_upi,
+        amount=amount,
+        status="PENDING",
+    )
+    db.add(rec)
+    db.flush()
+    db.refresh(rec)
+    return rec
+
+
+def verify_transaction(
+    db: Session,
+    transaction_id: str,
+) -> models.UpiTransaction:
+    rec = (
+        db.query(models.UpiTransaction)
+        .filter(models.UpiTransaction.transaction_id == transaction_id)
+        .first()
+    )
+    if not rec:
+        raise ValueError("UPI transaction not found")
+    return rec
+
+
+def complete_transaction(
+    db: Session,
+    transaction_id: str,
+    completed_at,
+) -> models.UpiTransaction:
+    rec = (
+        db.query(models.UpiTransaction)
+        .filter(models.UpiTransaction.transaction_id == transaction_id)
+        .first()
+    )
+    if not rec:
+        raise ValueError("UPI transaction not found")
+    rec.status = "SUCCESS"
+    rec.completed_at = completed_at
+    db.flush()
+    db.refresh(rec)
+    return rec

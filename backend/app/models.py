@@ -350,3 +350,39 @@ class UpiPayment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     payment_id = Column(Integer, ForeignKey("payments.id"), nullable=True)
+
+class Wallet(Base):
+    __tablename__ = "wallets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner_type = Column(String, index=True)
+    owner_id = Column(Integer, index=True)
+    upi_id = Column(String, unique=True, index=True)
+    balance = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class UpiTransaction(Base):
+    __tablename__ = "upi_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    transaction_id = Column(String, unique=True, index=True)
+    sender_upi_id = Column(String, index=True)
+    receiver_upi_id = Column(String, index=True)
+    amount = Column(Integer)
+    status = Column(String, default="PENDING")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class MerchantOrder(Base):
+    __tablename__ = "merchant_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    merchant_id = Column(Integer, ForeignKey("companies.id"), index=True)
+    order_id = Column(String, unique=True, index=True)
+    amount = Column(Integer)
+    items_json = Column(String, nullable=True)
+    status = Column(String, default="PENDING")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    paid_at = Column(DateTime(timezone=True), nullable=True)

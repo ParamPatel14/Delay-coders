@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from .. import models, schemas, utils
+from . import wallet_service, upi_service
 from ..config import settings
 
 def register_company(db: Session, data: schemas.CompanyCreate) -> models.Company:
@@ -15,6 +16,9 @@ def register_company(db: Session, data: schemas.CompanyCreate) -> models.Company
         wallet_address=data.wallet_address
     )
     db.add(rec)
+    db.flush()
+    acc = upi_service.get_or_create_default_merchant(db)
+    wallet_service.create_wallet(db, "MERCHANT", rec.id, acc.vpa)
     db.commit()
     db.refresh(rec)
     return rec
