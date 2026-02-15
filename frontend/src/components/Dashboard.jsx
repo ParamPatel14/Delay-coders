@@ -2,15 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { LogOut, User, Leaf, Building2, Shield, Coins, Sparkles } from 'lucide-react';
+import { LogOut, User, Leaf, Building2, Shield } from 'lucide-react';
 import { useCompanyAuth } from '../context/CompanyAuthContext';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { GlowRing } from '../ui/ring';
-import { HoloBadge } from '../ui/badge';
-import { Sparkline } from '../ui/sparkline';
+import DashboardSummary from './DashboardSummary';
+import TransactionList from './TransactionList';
+import RewardsList from './RewardsList';
+import BadgesList from './BadgesList';
+import ChallengesList from './ChallengesList';
+import LeaderboardList from './LeaderboardList';
+import ErrorBoundary from './ErrorBoundary';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
@@ -43,45 +44,51 @@ const Dashboard = () => {
     // Removed inline Payment card; payments moved to dedicated /pay page
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
-            {/* Navbar */}
-            <nav className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-slate-950 text-slate-50">
+            <nav className="border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+                <div className="max-w-7xl mx-auto px-4 sm:px-7 lg:px-9">
                     <div className="flex justify-between h-16">
-                        <div className="flex items-center">
-                            <Leaf className="h-8 w-8 text-green-600 mr-2" />
-                            <span className="text-2xl font-semibold text-gray-900 tracking-tight">Eco<span className="text-green-600">Cent</span></span>
+                        <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-3xl bg-emerald-500/10 flex items-center justify-center ring-4 ring-emerald-500/20">
+                                <Leaf className="h-5 w-5 text-emerald-400" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">EcoCent</div>
+                                <div className="text-lg font-semibold text-slate-50">
+                                    Personal Impact <span className="text-emerald-400">Dashboard</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-xl border border-gray-200">
-                                <User className="h-4 w-4 mr-2 text-gray-500" />
-                                {user?.full_name || user?.email}
+                        <div className="flex items-center space-x-3">
+                            <div className="flex items-center text-xs sm:text-sm font-medium text-slate-200 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-700 shadow-[0_8px_22px_rgba(15,23,42,0.45)]">
+                                <User className="h-3.5 w-3.5 mr-2 text-emerald-400" />
+                                <span className="truncate max-w-[180px]">{user?.full_name || user?.email}</span>
                             </div>
                             <button
                                 onClick={() => navigate(company ? '/company/panel' : '/company/login')}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50"
+                                className="hidden md:inline-flex items-center px-3 py-2 border border-slate-700 text-xs font-medium rounded-lg text-slate-100 bg-slate-900 hover:bg-slate-800 shadow-sm"
                             >
-                                <Building2 className="h-4 w-4 mr-2" />
-                                Company Portal
+                                <Building2 className="h-3.5 w-3.5 mr-2 text-emerald-400" />
+                                Company
                             </button>
                             <button
                                 onClick={() => navigate('/pay')}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50"
+                                className="inline-flex items-center px-3.5 py-2 border border-emerald-500/60 text-xs font-semibold rounded-[20px] text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/15 shadow-[0_14px_40px_rgba(16,185,129,0.45)]"
                             >
                                 Payments
                             </button>
                             <button
                                 onClick={() => navigate(admin ? '/admin/panel' : '/admin/login')}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50"
+                                className="hidden lg:inline-flex items-center px-3 py-2 border border-slate-700 text-xs font-medium rounded-lg text-slate-100 bg-slate-900 hover:bg-slate-800 shadow-sm"
                             >
-                                <Shield className="h-4 w-4 mr-2" />
-                                Admin Portal
+                                <Shield className="h-3.5 w-3.5 mr-2 text-emerald-400" />
+                                Admin
                             </button>
                             <button
                                 onClick={handleLogout}
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none transition-colors"
+                                className="inline-flex items-center px-3 py-2 text-xs font-semibold rounded-lg text-slate-900 bg-amber-400 hover:bg-amber-500 shadow-[0_10px_30px_rgba(245,158,11,0.45)]"
                             >
-                                <LogOut className="h-4 w-4 mr-2" />
+                                <LogOut className="h-3.5 w-3.5 mr-2" />
                                 Logout
                             </button>
                         </div>
@@ -89,107 +96,45 @@ const Dashboard = () => {
                 </div>
             </nav>
 
-            <main className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Overview</h2>
-                    {!summary ? (
+            <main className="max-w-7xl mx-auto py-9 px-4 sm:px-7 lg:px-9">
+                <div className="mb-7">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <h2 className="text-lg sm:text-xl font-semibold text-slate-50">Portfolio Overview</h2>
+                        <p className="text-xs text-slate-400">Live sync from your eco-payments activity</p>
+                    </div>
+                    {loading || !summary ? (
                         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            <div className="h-40 rounded-xl border border-gray-200 bg-white animate-pulse" />
-                            <div className="h-40 rounded-xl border border-gray-200 bg-white animate-pulse" />
-                            <div className="h-40 rounded-xl border border-gray-200 bg-white animate-pulse" />
+                            <div className="h-40 rounded-xl border border-slate-800 bg-slate-900 animate-pulse" />
+                            <div className="h-40 rounded-2xl border border-slate-800 bg-slate-900/80 animate-pulse" />
+                            <div className="h-40 rounded-[20px] border border-slate-800 bg-slate-900 animate-pulse" />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2">
-                                <GlowRing
-                                    value={Math.min(100, Math.round((summary.carbon_summary.total_carbon || 0) * 10))}
-                                    label="Total Carbon Offset"
-                                />
-                            </div>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Token Balance</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Coins className="h-5 w-5 text-blue-600" />
-                                            <div className="text-sm text-gray-600">Eco Points</div>
-                                        </div>
-                                        <div className="text-2xl font-semibold text-gray-900">
-                                            {summary.eco_points_balance?.total_points ?? 0}
-                                        </div>
-                                    </div>
-                                    <div className="mt-4">
-                                        <Sparkles className="h-4 w-4 text-green-600" />
-                                        <div className="mt-2">
-                                            <Sparkline data={(summary.recent_rewards || []).map(r => r.points)} />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+                        <ErrorBoundary>
+                            <DashboardSummary summary={summary} />
+                        </ErrorBoundary>
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
                     <div className="lg:col-span-2 space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Recent Activity</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {loading ? (
-                                    <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
-                                ) : (
-                                    <div className="space-y-3">
-                                        {(summary?.recent_transactions || []).map(tx => (
-                                            <div key={tx.id} className="flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 bg-white">
-                                                <div className="text-sm text-gray-600">{tx.description || 'Transaction'}</div>
-                                                <div className="text-sm text-gray-900">
-                                                    {(tx.amount/100).toLocaleString('en-IN', { style: 'currency', currency: tx.currency })}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Carbon Records</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {loading ? (
-                                    <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
-                                ) : (
-                                    <div className="space-y-3">
-                                        {(summary?.recent_carbon_records || []).map(cr => (
-                                            <div key={cr.id} className="flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 bg-white">
-                                                <div className="text-sm text-gray-600">{cr.category}</div>
-                                                <div className="text-sm text-gray-900">{cr.carbon_emission.toFixed(2)} kg CO₂</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                        <ErrorBoundary>
+                            <TransactionList transactions={summary?.recent_transactions} />
+                        </ErrorBoundary>
+                        <ErrorBoundary>
+                            <RewardsList rewards={summary?.recent_rewards} />
+                        </ErrorBoundary>
                     </div>
 
-                    <div className="space-y-6">
-                        <HoloBadge level={5} title="Earth Guardian" />
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Account Status</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600">Membership</span>
-                                    <span className="font-semibold text-green-600">Active</span>
-                                </div>
-                            </CardContent>
-                        </Card>
+                    <div className="space-y-5 lg:pt-3">
+                        <ErrorBoundary>
+                            <BadgesList badges={summary?.badges} />
+                        </ErrorBoundary>
+                        <ErrorBoundary>
+                            <ChallengesList challenges={summary?.challenges} />
+                        </ErrorBoundary>
+                        <ErrorBoundary>
+                            <LeaderboardList entries={summary?.leaderboard} />
+                        </ErrorBoundary>
                     </div>
                 </div>
             </main>

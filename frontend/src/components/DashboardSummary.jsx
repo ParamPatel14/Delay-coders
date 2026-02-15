@@ -1,21 +1,23 @@
 import React from 'react';
 import { Wallet, Cloud, Calendar, Leaf, Trophy, GaugeCircle, Medal, Flame, Coins } from 'lucide-react';
 
-const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
-    <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
-        <div className="p-6">
-            <div className="flex items-center">
-                <div className={`flex-shrink-0 rounded-lg p-3 ${color} ring-4 ring-opacity-20 ring-white`}>
-                    <Icon className="h-6 w-6 text-white" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                    <dl>
-                        <dt className="text-sm font-medium text-gray-600 truncate">{title}</dt>
-                        <dd>
-                            <div className="text-2xl font-semibold text-gray-900 leading-tight">{value}</div>
-                            {subtext && <p className="text-sm text-gray-400 mt-1">{subtext}</p>}
-                        </dd>
-                    </dl>
+const StatCard = ({ title, value, icon: Icon, color, subtext, offset }) => (
+    <div className={`bg-slate-900/80 overflow-hidden rounded-2xl border border-slate-800 shadow-[0_18px_45px_rgba(15,23,42,0.65)] ${offset || ''}`}>
+        <div className="px-5 pt-4 pb-5">
+            <div className="flex items-start justify-between">
+                <div className="flex items-center">
+                    <div className={`flex-shrink-0 rounded-lg p-3 ${color} ring-4 ring-emerald-500/15`}>
+                        <Icon className="h-5 w-5 text-slate-950" />
+                    </div>
+                    <div className="ml-4">
+                        <dl>
+                            <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 truncate">{title}</dt>
+                            <dd>
+                                <div className="mt-1 text-xl font-semibold text-slate-50 leading-tight">{value}</div>
+                                {subtext && <p className="text-xs text-slate-400 mt-1.5">{subtext}</p>}
+                            </dd>
+                        </dl>
+                    </div>
                 </div>
             </div>
         </div>
@@ -42,65 +44,66 @@ const DashboardSummary = ({ summary }) => {
     const carbonCreditTokens = summary.carbon_credit_tokens ?? 0;
 
     return (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-            {/* Financial Stats */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             <StatCard 
                 title="Total Spent" 
                 value={totalSpent} 
                 icon={Wallet} 
-                color="bg-green-600" 
+                color="bg-emerald-400" 
             />
-            
-            {/* Carbon Stats */}
+
             <StatCard 
                 title="Carbon Footprint" 
                 value={`${carbon.total_carbon} kg CO₂`} 
                 icon={Cloud} 
-                color="bg-gray-700"
-                subtext={`Saved: ${carbonSaved} kg`}
+                color="bg-emerald-500/90"
+                subtext={`Saved ${carbonSaved} kg • Net impact`}
             />
 
             <StatCard 
                 title="Monthly Emission" 
                 value={`${carbon.monthly_carbon} kg CO₂`} 
                 icon={Calendar} 
-                color="bg-orange-500" 
-                subtext={`Avg: ${carbon.daily_average} kg/day`}
+                color="bg-slate-200" 
+                subtext={`Avg ${carbon.daily_average} kg/day`}
             />
             <StatCard 
                 title="Eco Points" 
                 value={`${points.total_points} pts`} 
                 icon={Trophy} 
-                color="bg-indigo-600" 
-                subtext={`Lifetime: ${points.lifetime_points} pts`}
+                color="bg-amber-400" 
+                subtext={`Lifetime ${points.lifetime_points} pts`}
+                offset="md:-mt-2"
             />
             <StatCard 
                 title="Carbon Credits" 
                 value={`${carbonCredits} CCT`} 
                 icon={Coins} 
-                color="bg-green-700" 
-                subtext={`On-chain: ${carbonCreditTokens} CCT`}
+                color="bg-emerald-300" 
+                subtext={`On-chain ${carbonCreditTokens} CCT`}
             />
             <StatCard 
                 title="Eco Score" 
                 value={`${score.score || 0}/100`} 
                 icon={GaugeCircle} 
-                color="bg-teal-600" 
-                subtext={`Sustainability score`}
+                color="bg-slate-300" 
+                subtext="Sustainability score"
+                offset="md:mt-3"
             />
             <StatCard 
                 title="Level" 
                 value={userLevel.level} 
                 icon={Medal} 
-                color="bg-purple-600" 
-                subtext={`Threshold: ${userLevel.points_required} pts`}
+                color="bg-emerald-200" 
+                subtext={`Threshold ${userLevel.points_required} pts`}
             />
             <StatCard 
                 title="Streak" 
                 value={`${streak.current_streak} days`} 
                 icon={Flame} 
-                color="bg-red-600" 
-                subtext={`Longest: ${streak.longest_streak} days`}
+                color="bg-amber-300" 
+                subtext={`Longest ${streak.longest_streak} days`}
+                offset="md:mt-4"
             />
         </div>
     );
