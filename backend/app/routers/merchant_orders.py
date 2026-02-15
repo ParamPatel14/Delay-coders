@@ -153,14 +153,17 @@ def upi_pay(payload: dict, db: Session = Depends(get_db)):
 
 
 @upi_router.post("/scan-and-pay")
-def scan_and_pay(payload: dict, db: Session = Depends(get_db)):
+def scan_and_pay(
+    payload: dict,
+    current_user: models.User = Depends(dependencies.get_current_user),
+    db: Session = Depends(get_db),
+):
     qr_raw = payload.get("qr_data")
-    user_upi_id = payload.get("user_upi_id")
 
-    if qr_raw is None or not user_upi_id:
+    if qr_raw is None:
         raise HTTPException(
             status_code=400,
-            detail="qr_data and user_upi_id are required",
+            detail="qr_data is required",
         )
 
     if isinstance(qr_raw, str):
@@ -182,6 +185,9 @@ def scan_and_pay(payload: dict, db: Session = Depends(get_db)):
             status_code=400,
             detail="qr_data must include merchant_upi, amount, and order_id",
         )
+
+    user_upi_account = upi_service.get_or_create_user_upi(db, current_user)
+    user_upi_id = user_upi_account.vpa
 
     try:
         amount_paisa = int(float(amount) * 100)
@@ -269,6 +275,8 @@ def scan_and_pay(payload: dict, db: Session = Depends(get_db)):
         "transaction_id": tx.transaction_id,
         "status": tx.status,
         "order_id": order_id,
+        "items": items,
+        "carbon_kg": carbon_record.carbon_emission,
     }
 
 

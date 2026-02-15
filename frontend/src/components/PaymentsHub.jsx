@@ -8,6 +8,7 @@ import { Input } from '../ui/input';
 
 const tiles = [
   { key: 'upi_qr', label: 'UPI QR', icon: ScanLine, category: 'Others', subcategory: 'UPI' },
+  { key: 'merchant_qr', label: 'Merchant QR', icon: ScanLine, category: 'Shopping', subcategory: 'Merchant QR' },
   { key: 'upi_id', label: 'UPI ID', icon: CreditCard, category: 'Others', subcategory: 'UPI' },
   { key: 'contacts', label: 'Contacts', icon: Users, category: 'Others', subcategory: 'Contact Pay' },
   { key: 'mobile_recharge', label: 'Mobile Recharge', icon: Phone, category: 'Others', subcategory: 'Mobile Recharge' },
@@ -102,6 +103,9 @@ const PaymentsHub = () => {
   const [txInsights, setTxInsights] = useState({});
   const [walletSummary, setWalletSummary] = useState(null);
   const [upiSummary, setUpiSummary] = useState(null);
+  const [merchantQrData, setMerchantQrData] = useState('');
+  const [merchantQrResult, setMerchantQrResult] = useState(null);
+  const [merchantQrError, setMerchantQrError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -223,6 +227,11 @@ const PaymentsHub = () => {
       setStep('details'); // travel details with sustainable toggle and mode picker
     } else if (tile.key === 'upi_qr') {
       setStep('details');
+    } else if (tile.key === 'merchant_qr') {
+      setStep('details');
+      setMerchantQrData('');
+      setMerchantQrResult(null);
+      setMerchantQrError('');
     } else if (tile.key === 'upi_id') {
       setStep('details');
     } else {
@@ -303,9 +312,33 @@ const PaymentsHub = () => {
   };
 
   const payNow = async () => {
-    if (!category) return;
+    if (!selected) return;
     setLoading(true);
     try {
+      if (selected === 'merchant_qr') {
+        setMerchantQrError('');
+        setMerchantQrResult(null);
+        let qrPayload;
+        try {
+          const raw = (merchantQrData || '').trim();
+          if (!raw) {
+            throw new Error('Paste QR data from merchant to continue.');
+          }
+          qrPayload = JSON.parse(raw);
+        } catch (e) {
+          setMerchantQrError(e.message || 'Invalid QR data JSON.');
+          return;
+        }
+        const { data } = await api.post('/upi/scan-and-pay', {
+          qr_data: qrPayload,
+        });
+        setMerchantQrResult(data);
+        await refreshWallet();
+        alert('Payment successful');
+        return;
+      }
+
+      if (!category) return;
       const effectiveCategory = category === 'Travel' && sustainable ? 'Sustainable Travel' : category;
       const computedSubcategory = (() => {
         const base = subcategory || '';
@@ -441,7 +474,7 @@ const PaymentsHub = () => {
               <CardTitle className="text-slate-900 tracking-tight">Details</CardTitle>
             </CardHeader>
             <CardContent>
-              {category === 'Shopping' && (
+              {category === 'Shopping' && selected !== 'merchant_qr' && (
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Shopping Type</label>
                   <div className="flex gap-2">
@@ -565,7 +598,7 @@ const PaymentsHub = () => {
                 </div>
               )}
 
-              {category && (
+              {category && selected !== 'merchant_qr' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   {(subcategory === 'Electricity' || category === 'Utilities') && (
                     <>
@@ -637,45 +670,87 @@ const PaymentsHub = () => {
                 </div>
               )}
 
-              <div className="mb-4">{renderPresets()}</div>
+              {selected !== 'merchant_qr' && (
+                <>
+                  <div className="mb-4">{renderPresets()}</div>
 
-              <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-slate-900 mb-1">Amount (INR)</label>
-                <div className="relative rounded-xl">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-emerald-700 sm:text-sm">₹</span>
+                  <div className="mb-4">
+                    <label htmlFor="amount" className="block text-sm font-medium text-slate-900 mb-1">Amount (INR)</label>
+                    <div className="relative rounded-xl">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-emerald-700 sm:text-sm">₹</span>
+                      </div>
+                      <Input
+                        type="number"
+                        id="amount"
+                        className="block w-full pl-7 pr-12 bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                      />
+                    </div>
                   </div>
-                  <Input
-                    type="number"
-                    id="amount"
-                    className="block w-full pl-7 pr-12 bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                  />
-                </div>
-              </div>
 
-              <div className="mb-4">
-                <label htmlFor="contact" className="block text-sm font-medium text-slate-900 mb-1">Phone Number</label>
-                <Input
-                  type="tel"
-                  id="contact"
-                  className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
-                  placeholder="9999999999"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                />
-              </div>
+                  <div className="mb-4">
+                    <label htmlFor="contact" className="block text-sm font-medium text-slate-900 mb-1">Phone Number</label>
+                    <Input
+                      type="tel"
+                      id="contact"
+                      className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
+                      placeholder="9999999999"
+                      value={contact}
+                      onChange={(e) => setContact(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
+              {selected === 'merchant_qr' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-900 mb-1">Merchant QR Data</label>
+                  <textarea
+                    className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm h-24 bg-white text-slate-900 placeholder:text-slate-400"
+                    placeholder='Paste QR data JSON shared by merchant'
+                    value={merchantQrData}
+                    onChange={(e) => setMerchantQrData(e.target.value)}
+                  />
+                  {merchantQrError && (
+                    <p className="text-xs text-rose-600 mt-1">{merchantQrError}</p>
+                  )}
+                  {merchantQrResult && (
+                    <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                      <div className="font-semibold mb-1">Receipt</div>
+                      <div className="mb-1">Order: {merchantQrResult.order_id}</div>
+                      <div className="mb-1">
+                        Items:
+                        <ul className="list-disc list-inside">
+                          {(merchantQrResult.items || []).map((it, idx) => (
+                            <li key={idx}>
+                              {it.name} × {it.quantity} @ ₹{it.price}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        Carbon generated:{' '}
+                        {merchantQrResult.carbon_kg && merchantQrResult.carbon_kg.toFixed
+                          ? merchantQrResult.carbon_kg.toFixed(2)
+                          : merchantQrResult.carbon_kg}{' '}
+                        kg CO₂
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <Button
                 onClick={payNow}
-                disabled={loading || !category}
+                disabled={loading || (!category && selected !== 'merchant_qr')}
                 className="relative w-full flex justify-center rounded-[9999px] bg-emerald-500/25 text-emerald-100 border border-emerald-400/70 shadow-[0_0_26px_rgba(16,185,129,0.7)] hover:bg-emerald-400/35 disabled:opacity-50"
               >
                 <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.55),transparent_55%)] opacity-60 mix-blend-screen" />
                 <span className="relative">
-                  {loading ? 'Processing...' : 'Pay Now'}
+                  {loading ? 'Processing...' : selected === 'merchant_qr' ? 'Pay Merchant' : 'Pay Now'}
                 </span>
               </Button>
               <p className="text-xs text-center text-slate-400 mt-2">Processed by GreenZaction Pay</p>

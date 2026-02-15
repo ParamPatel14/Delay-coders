@@ -11,6 +11,12 @@ const CompanyPanel = () => {
   const [connectSuccess, setConnectSuccess] = useState('');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [orderId, setOrderId] = useState('');
+  const [posItems, setPosItems] = useState([{ name: '', quantity: 1, price: '' }]);
+  const [posAmount, setPosAmount] = useState('');
+  const [qrImage, setQrImage] = useState('');
+  const [qrError, setQrError] = useState('');
+  const [qrLoading, setQrLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,6 +118,81 @@ const CompanyPanel = () => {
     } catch (err) {
       console.error(err);
       alert('Purchase failed, please try again.');
+    }
+  };
+
+  const recalcPosAmount = (items) => {
+    const total = items.reduce((sum, it) => {
+      const q = Number(it.quantity) || 0;
+      const p = Number(it.price) || 0;
+      return sum + q * p;
+    }, 0);
+    if (total > 0) {
+      setPosAmount(total.toFixed(2));
+    } else {
+      setPosAmount('');
+    }
+  };
+
+  const updatePosItem = (index, field, value) => {
+    const next = posItems.map((it, i) => (i === index ? { ...it, [field]: value } : it));
+    setPosItems(next);
+    recalcPosAmount(next);
+  };
+
+  const addPosItem = () => {
+    const next = [...posItems, { name: '', quantity: 1, price: '' }];
+    setPosItems(next);
+    recalcPosAmount(next);
+  };
+
+  const removePosItem = (index) => {
+    const next = posItems.filter((_, i) => i !== index);
+    const finalList = next.length ? next : [{ name: '', quantity: 1, price: '' }];
+    setPosItems(finalList);
+    recalcPosAmount(finalList);
+  };
+
+  const generateQr = async () => {
+    setQrError('');
+    setQrImage('');
+    const token = localStorage.getItem('company_token');
+    if (!token) {
+      setQrError('Merchant token missing, please sign in again.');
+      return;
+    }
+    const cleanItems = posItems
+      .map((it) => ({
+        name: (it.name || '').trim(),
+        quantity: Number(it.quantity) || 0,
+        price: Number(it.price) || 0,
+      }))
+      .filter((it) => it.name && it.quantity > 0 && it.price > 0);
+    if (!cleanItems.length) {
+      setQrError('Add at least one item with name, quantity, and price.');
+      return;
+    }
+    const total = cleanItems.reduce((sum, it) => sum + it.quantity * it.price, 0);
+    const finalOrderId = orderId || `ORD-${Date.now()}`;
+    setQrLoading(true);
+    try {
+      const res = await api.post(
+        '/merchant/orders/generate-qr',
+        {
+          order_id: finalOrderId,
+          amount: total,
+          items: cleanItems,
+        },
+        { params: { token } }
+      );
+      setOrderId(finalOrderId);
+      setPosAmount(total.toFixed(2));
+      setQrImage(res.data.qr_code_url);
+    } catch (err) {
+      const msg = err?.response?.data?.detail || 'Failed to generate QR.';
+      setQrError(msg);
+    } finally {
+      setQrLoading(false);
     }
   };
 
@@ -224,32 +305,143 @@ const CompanyPanel = () => {
         </div>
         <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.52),transparent_58%),radial-gradient(circle_at_120%_0,rgba(52,211,153,0.45),transparent_60%)] shadow-sm">
           <div className="bg-white px-5 pt-5 pb-6 rounded-[24px] shadow-sm border border-emerald-100 backdrop-blur-xl">
-          <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-3">Marketplace Listings</h2>
-          {loading ? (
-            <div className="text-xs sm:text-sm text-emerald-800">Loading...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {listings.map(l => (
-                <div
-                  key={l.id}
-                  className="border border-emerald-100 rounded-[20px] p-4 bg-white hover:bg-emerald-50 hover:shadow-sm transition-all"
-                >
-                  <div className="text-sm font-medium text-slate-900">Listing #{l.id}</div>
-                  <div className="mt-1 text-xs sm:text-sm text-emerald-800">Credits: {l.credit_amount}</div>
-                  <div className="text-xs sm:text-sm text-emerald-800">Price/Credit: {l.price_per_credit}</div>
-                  <div className="text-xs sm:text-sm text-emerald-700">Seller: {l.seller_user_id}</div>
-                  <button
-                    onClick={() => purchase(l)}
-                    className="relative mt-3 bg-emerald-500 text-slate-950 px-3.5 py-2 text-sm rounded-[9999px] flex items-center font-semibold border border-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 shadow-sm"
+            <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-3">Marketplace Listings</h2>
+            {loading ? (
+              <div className="text-xs sm:text-sm text-emerald-800">Loading...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {listings.map(l => (
+                  <div
+                    key={l.id}
+                    className="border border-emerald-100 rounded-[20px] p-4 bg-white hover:bg-emerald-50 hover:shadow-sm transition-all"
                   >
-                    <span className="relative flex items-center mx-auto">
-                      <ShoppingCart className="h-4 w-4 mr-2" /> Purchase
-                    </span>
-                  </button>
+                    <div className="text-sm font-medium text-slate-900">Listing #{l.id}</div>
+                    <div className="mt-1 text-xs sm:text-sm text-emerald-800">Credits: {l.credit_amount}</div>
+                    <div className="text-xs sm:text-sm text-emerald-800">Price/Credit: {l.price_per_credit}</div>
+                    <div className="text-xs sm:text-sm text-emerald-700">Seller: {l.seller_user_id}</div>
+                    <button
+                      onClick={() => purchase(l)}
+                      className="relative mt-3 bg-emerald-500 text-slate-950 px-3.5 py-2 text-sm rounded-[9999px] flex items-center font-semibold border border-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 shadow-sm"
+                    >
+                      <span className="relative flex items-center mx-auto">
+                        <ShoppingCart className="h-4 w-4 mr-2" /> Purchase
+                      </span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.48),transparent_58%),radial-gradient(circle_at_120%_0,rgba(52,211,153,0.45),transparent_60%)] shadow-sm">
+          <div className="bg-white px-5 pt-5 pb-6 rounded-[24px] shadow-sm border border-emerald-100 backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-900">In-store Shopping QR</h2>
+                <div className="mt-1 text-xs text-emerald-800">
+                  Add items and generate a QR for customers to pay.
                 </div>
-              ))}
+              </div>
+              <div className="hidden sm:flex items-center text-xs text-emerald-800">
+                <ShoppingCart className="h-4 w-4 mr-1" /> POS
+              </div>
             </div>
-          )}
+            {qrError && <div className="mb-3 text-xs sm:text-sm text-amber-600">{qrError}</div>}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 space-y-3">
+                <div>
+                  <label className="block text-sm text-slate-700 mb-1">Order ID</label>
+                  <input
+                    type="text"
+                    value={orderId}
+                    onChange={(e) => setOrderId(e.target.value)}
+                    placeholder="e.g., ORD-1001 (leave blank to auto-generate)"
+                    className="w-full border border-emerald-100 bg-white rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-900">Items</span>
+                    <button
+                      type="button"
+                      onClick={addPosItem}
+                      className="text-xs font-semibold text-emerald-700 hover:text-emerald-600"
+                    >
+                      + Add item
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {posItems.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                        <input
+                          type="text"
+                          placeholder="Item name"
+                          value={item.name}
+                          onChange={(e) => updatePosItem(idx, 'name', e.target.value)}
+                          className="col-span-6 border border-emerald-100 bg-white rounded-lg px-2.5 py-1.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Qty"
+                          value={item.quantity}
+                          onChange={(e) => updatePosItem(idx, 'quantity', e.target.value)}
+                          className="col-span-2 border border-emerald-100 bg-white rounded-lg px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Price"
+                          value={item.price}
+                          onChange={(e) => updatePosItem(idx, 'price', e.target.value)}
+                          className="col-span-3 border border-emerald-100 bg-white rounded-lg px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePosItem(idx)}
+                          className="col-span-1 text-[10px] text-slate-500 hover:text-amber-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-emerald-50">
+                  <div className="text-xs text-slate-500">Total amount</div>
+                  <div className="text-sm sm:text-base font-semibold text-slate-900">
+                    ₹{posAmount || '0.00'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={generateQr}
+                  disabled={qrLoading}
+                  className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 rounded-[9999px] bg-emerald-500 text-white text-sm font-semibold border border-emerald-500 hover:bg-emerald-600 disabled:opacity-50"
+                >
+                  {qrLoading ? 'Generating QR...' : 'Generate Payment QR'}
+                </button>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 pt-4 pb-5 flex flex-col items-center justify-center">
+                {qrImage ? (
+                  <>
+                    <img
+                      src={qrImage}
+                      alt="Payment QR"
+                      className="w-36 h-36 mb-3 bg-white rounded-lg border border-emerald-100"
+                    />
+                    <div className="text-xs text-center text-emerald-800">
+                      Ask the user to scan this QR with the EcoPay app and pay from their wallet.
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xs text-center text-emerald-800">
+                    Generate a QR to show the total amount and items to the shopper.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </main>
