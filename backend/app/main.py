@@ -5,7 +5,7 @@ from sqlalchemy import text
 from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, dependencies
 from .routers import auth, payments, transactions, emissions, carbon, eco_points, achievements, gamification, dashboard, wallet, blockchain, tokens, carbon_credits, companies, marketplace, admin
-from .services import badges, challenges
+from .services import badges, challenges, marketplace_service
 from .services import logging_service
 from fastapi.responses import JSONResponse
 
@@ -22,6 +22,7 @@ def startup_event():
         emissions.seed_emission_factors(db)
         badges.seed_default_badges(db)
         challenges.seed_default_challenges(db)
+        marketplace_service.seed_demo_listings(db)
     finally:
         db.close()
 

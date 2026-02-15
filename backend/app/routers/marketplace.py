@@ -13,6 +13,7 @@ from ..database import get_db
 import razorpay
 from ..services import purchase_service
 from ..services import logging_service
+from ..services import credit_transfer_service
 from sqlalchemy import func
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
@@ -158,14 +159,27 @@ def verify_company_payment(payload: dict, token: str, db: Session = Depends(get_
             credit.owner_type = "COMPANY"
             credit.owner_id = comp.id
             db.add(credit)
+        seller_tx = models.Transaction(
+            user_id=listing.seller_user_id,
+            amount=int(order.total_price * 100),
+            currency="INR",
+            type="credit",
+            category="marketplace_sale",
+            description=f"Sale of {order.credit_amount} credits to company {comp.id}",
+            status="completed",
+            payment_id=None,
+        )
+        db.add(seller_tx)
     tx = models.MarketplaceTransaction(
         buyer_company_id=comp.id,
         seller_user_id=listing.seller_user_id if listing else None,
         credit_amount=order.credit_amount,
         total_price=order.total_price,
-        blockchain_tx_hash=res.get("tx_hash")
+        blockchain_tx_hash=res.get("tx_hash"),
     )
     db.add(tx)
+    db.commit()
+    db.refresh(tx)
     return {"status": "ok", "tx_hash": res.get("tx_hash")}
 
 @router.get("/history")
