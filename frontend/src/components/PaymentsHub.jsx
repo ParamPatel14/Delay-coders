@@ -131,7 +131,11 @@ const PaymentsHub = () => {
           <button
             key={p}
             type="button"
-            className={`px-3 py-1 rounded-md border text-sm ${amount === p ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+            className={`px-3 py-1 rounded-md border text-xs sm:text-sm ${
+              amount === p
+                ? 'border-emerald-400/80 text-emerald-100 bg-emerald-500/10 shadow-[0_0_18px_rgba(16,185,129,0.5)]'
+                : 'border-white/10 text-slate-200 bg-slate-950/70 hover:bg-slate-900/80'
+            }`}
             onClick={() => setAmount(p)}
           >
             ₹{p}
@@ -270,34 +274,58 @@ const PaymentsHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-[#030303] text-slate-50 selection:bg-emerald-500/30 relative overflow-hidden">
+      <div
+        className="pointer-events-none fixed inset-0 opacity-60 mix-blend-soft-light"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle_at 16% 0, rgba(16,185,129,0.28), transparent 60%), radial-gradient(circle_at 84% 8%, rgba(245,158,11,0.2), transparent 55%), url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\' viewBox=\'0 0 160 160\'%3E%3Cfilter id=\'n\' x=\'0\' y=\'0\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'noStitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.3\'/%3E%3C/svg%3E")'
+        }}
+      />
+      <header className="relative border-b border-slate-800/80 bg-[#050505]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center">
-            <CreditCard className="h-6 w-6 text-green-600 mr-2" />
-            <span className="text-xl font-semibold text-gray-900">Payments</span>
+            <div className="h-8 w-8 rounded-3xl bg-emerald-500/10 flex items-center justify-center ring-4 ring-emerald-500/20 mr-3">
+              <CreditCard className="h-4 w-4 text-emerald-400" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">EcoCent</div>
+              <span className="text-lg font-bold tracking-tight text-slate-50">Payments</span>
+            </div>
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {tiles.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              className={`flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition ${selected === key ? 'ring-1 ring-green-500' : ''}`}
-              onClick={() => pickTile(tiles.find(t => t.key === key))}
-            >
-              <Icon className="h-6 w-6 text-green-600 mb-2" />
-              <span className="text-sm font-medium text-gray-900">{label}</span>
-            </button>
-          ))}
+      <main className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <h2 className="text-lg font-bold tracking-tight text-slate-50 mb-3">Quick Actions</h2>
+        <div className="relative mb-8 rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.45),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(245,158,11,0.34),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.35)]">
+          <div className="bg-[#050505]/85 rounded-[24px] border border-white/10 backdrop-blur-xl">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 sm:p-5">
+              {tiles.map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`group relative flex flex-col items-center justify-center rounded-2xl px-4 py-4 border text-xs sm:text-sm transition ${
+                    selected === key
+                      ? 'border-emerald-400/80 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.65)]'
+                      : 'border-white/10 bg-slate-950/60 hover:bg-slate-900/80 hover:shadow-[0_14px_40px_rgba(16,185,129,0.45)]'
+                  }`}
+                  onClick={() => pickTile(tiles.find(t => t.key === key))}
+                >
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.4),transparent_55%)] mix-blend-screen" />
+                  <div className="relative flex flex-col items-center">
+                    <Icon className="h-6 w-6 text-emerald-400 mb-2" />
+                    <span className="font-medium text-slate-50">{label}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <Card>
+        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(148,163,184,0.5),transparent_58%),radial-gradient(circle_at_120%_0,rgba(16,185,129,0.45),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.4)]">
+          <Card className="bg-[#050505]/88 rounded-[24px] border border-white/10 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,118,110,0.65)]">
           <CardHeader>
-            <CardTitle>Details</CardTitle>
+            <CardTitle className="text-slate-50 tracking-tight">Details</CardTitle>
           </CardHeader>
           <CardContent>
 
@@ -327,10 +355,14 @@ const PaymentsHub = () => {
 
           {category === 'Travel' && (
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm text-gray-700">Sustainable option</span>
+              <span className="text-sm text-slate-200">Sustainable option</span>
               <button
                 type="button"
-                className={`px-3 py-1 rounded-full border text-xs ${sustainable ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
+                className={`px-3 py-1 rounded-full border text-xs ${
+                  sustainable
+                    ? 'ring-1 ring-emerald-500 border-emerald-400/70 text-emerald-100 bg-emerald-500/10'
+                    : 'border-white/10 bg-slate-950/70 hover:bg-slate-900/80 text-slate-200'
+                }`}
                 onClick={() => setSustainable(!sustainable)}
               >
                 {sustainable ? 'Enabled' : 'Enable'}
@@ -341,12 +373,13 @@ const PaymentsHub = () => {
           {step === 'providers' && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Select Provider</span>
+                <span className="text-sm font-medium text-slate-200">Select Provider</span>
                 <Input
                   type="text"
                   placeholder="Search providers"
                   value={providerSearch}
                   onChange={(e) => setProviderSearch(e.target.value)}
+                  className="w-40 sm:w-56 bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
                 />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -354,7 +387,11 @@ const PaymentsHub = () => {
                   <button
                     key={p}
                     type="button"
-                    className={`px-3 py-2 rounded-xl border text-sm text-left ${provider === p ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
+                    className={`px-3 py-2 rounded-xl border text-sm text-left ${
+                      provider === p
+                        ? 'border-emerald-400/80 bg-emerald-500/10 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.55)]'
+                        : 'border-white/10 bg-slate-950/70 hover:bg-slate-900/80 text-slate-100'
+                    }`}
                     onClick={() => {
                       setProvider(p);
                       setStep('details');
@@ -369,12 +406,12 @@ const PaymentsHub = () => {
 
           {provider && (
             <div className="mb-4">
-              <div className="text-sm text-gray-600 mb-1">Provider</div>
-              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-                <span className="text-sm font-medium text-gray-900">{provider}</span>
+              <div className="text-sm text-slate-300 mb-1">Provider</div>
+              <div className="flex items-center justify-between bg-slate-950/70 border border-slate-700 rounded-xl px-3 py-2">
+                <span className="text-sm font-medium text-slate-50">{provider}</span>
                 <button
                   type="button"
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-emerald-300 hover:text-emerald-200"
                   onClick={() => setStep('providers')}
                 >
                   Change
@@ -385,9 +422,9 @@ const PaymentsHub = () => {
 
           {selected === 'upi_qr' && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">UPI QR Code Text</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">UPI QR Code Text</label>
               <textarea
-                className="border border-gray-200 rounded-xl w-full px-3 py-2 text-sm h-24 bg-white text-gray-900 placeholder:text-gray-400"
+                className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm h-24 bg-slate-950/80 text-slate-100 placeholder:text-slate-500"
                 placeholder="upi://pay?pa=merchant@upi&pn=Merchant&am=500&cu=INR"
                 value={upiQrText}
                 onChange={(e) => {
@@ -400,7 +437,7 @@ const PaymentsHub = () => {
           
           {selected === 'upi_id' && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">UPI ID</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">UPI ID</label>
               <Input
                 type="text"
                 placeholder="example@bank"
@@ -410,8 +447,9 @@ const PaymentsHub = () => {
                   setUpiId(val);
                   setProvider(val);
                 }}
+                className="bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
               />
-              <p className="text-xs text-gray-500 mt-1">Enter the recipient UPI ID (e.g., merchant@upi). This is simulated and will be recorded with the payment.</p>
+              <p className="text-xs text-slate-400 mt-1">Enter the recipient UPI ID (e.g., merchant@upi). This is simulated and will be recorded with the payment.</p>
             </div>
           )}
 
@@ -421,33 +459,33 @@ const PaymentsHub = () => {
               {(subcategory === 'Electricity' || category === 'Utilities') && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Consumer Number</label>
-                    <Input className="w-full" placeholder="e.g., 1234567890" />
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Consumer Number</label>
+                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 1234567890" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Billing Unit</label>
-                    <Input className="w-full" placeholder="e.g., 4402" />
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Billing Unit</label>
+                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 4402" />
                   </div>
                 </>
               )}
               {category === 'Gas' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Connection ID</label>
-                    <Input className="w-full" placeholder="e.g., 9876543210" />
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Connection ID</label>
+                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 9876543210" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Registered Mobile</label>
-                    <Input className="w-full" placeholder="e.g., 9999999999" />
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Registered Mobile</label>
+                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 9999999999" />
                   </div>
                 </>
               )}
               {category === 'Travel' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Travel Mode</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Travel Mode</label>
                     <select
-                      className="border border-gray-200 rounded-xl w-full px-3 py-2 text-sm bg-white text-gray-900"
+                      className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm bg-slate-950/80 text-slate-100"
                       value={subcategory}
                       onChange={(e) => setSubcategory(e.target.value)}
                     >
@@ -459,21 +497,21 @@ const PaymentsHub = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">PNR/Booking ID</label>
-                    <Input className="w-full" placeholder="e.g., ABC1234567" />
+                    <label className="block text-sm font-medium text-slate-200 mb-1">PNR/Booking ID</label>
+                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., ABC1234567" />
                   </div>
                 </>
               )}
               {category === 'Shopping' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
-                    <Input className="w-full" placeholder="e.g., ORD-001234" />
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Order ID</label>
+                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., ORD-001234" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Merchant</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-1">Merchant</label>
                     <select
-                      className="border border-gray-200 rounded-xl w-full px-3 py-2 text-sm bg-white text-gray-900"
+                      className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm bg-slate-950/80 text-slate-100"
                       value={provider}
                       onChange={(e) => setProvider(e.target.value)}
                     >
@@ -491,15 +529,15 @@ const PaymentsHub = () => {
           <div className="mb-4">{renderPresets()}</div>
 
           <div className="mb-4">
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Amount (INR)</label>
+            <label htmlFor="amount" className="block text-sm font-medium text-slate-200 mb-1">Amount (INR)</label>
             <div className="relative rounded-xl">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">₹</span>
+                <span className="text-slate-400 sm:text-sm">₹</span>
               </div>
               <Input
                 type="number"
                 id="amount"
-                className="block w-full pl-7 pr-12"
+                className="block w-full pl-7 pr-12 bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
@@ -508,10 +546,11 @@ const PaymentsHub = () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <label htmlFor="contact" className="block text-sm font-medium text-slate-200 mb-1">Phone Number</label>
             <Input
               type="tel"
               id="contact"
+              className="bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
               placeholder="9999999999"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
@@ -521,13 +560,17 @@ const PaymentsHub = () => {
           <Button
             onClick={payNow}
             disabled={loading || !category}
-            className="w-full flex justify-center disabled:opacity-50"
+            className="relative w-full flex justify-center rounded-[9999px] bg-emerald-500/25 text-emerald-100 border border-emerald-400/70 shadow-[0_0_26px_rgba(16,185,129,0.7)] hover:bg-emerald-400/35 disabled:opacity-50"
           >
-            {loading ? 'Processing...' : 'Pay Now'}
+            <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.55),transparent_55%)] opacity-60 mix-blend-screen" />
+            <span className="relative">
+              {loading ? 'Processing...' : 'Pay Now'}
+            </span>
           </Button>
-          <p className="text-xs text-center text-gray-500 mt-2">Secured by Razorpay</p>
+          <p className="text-xs text-center text-slate-400 mt-2">Secured by Razorpay</p>
           </CardContent>
         </Card>
+        </div>
       </main>
     </div>
   );

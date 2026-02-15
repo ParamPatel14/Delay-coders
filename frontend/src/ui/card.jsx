@@ -3,7 +3,8 @@ import React from 'react';
 export const Card = ({ className = '', children }) => (
   <div
     className={
-      `rounded-xl border border-gray-200 bg-white shadow-sm ` +
+      `rounded-[24px] border border-white/10 bg-[#050505]/88 text-slate-50 ` +
+      `shadow-[0_24px_80px_rgba(15,118,110,0.55)] backdrop-blur-xl ` +
       className
     }
   >
@@ -12,13 +13,13 @@ export const Card = ({ className = '', children }) => (
 );
 
 export const CardHeader = ({ className = '', children }) => (
-  <div className={`px-4 pt-4 ${className}`}>{children}</div>
+  <div className={`px-5 pt-5 ${className}`}>{children}</div>
 );
 
 export const CardTitle = ({ className = '', children }) => (
-  <div className={`text-sm font-medium text-gray-600 tracking-wide ${className}`}>{children}</div>
+  <div className={`text-sm font-semibold text-slate-50 tracking-tight ${className}`}>{children}</div>
 );
 
 export const CardContent = ({ className = '', children }) => (
-  <div className={`px-4 pb-4 ${className}`}>{children}</div>
+  <div className={`px-5 pb-5 ${className}`}>{children}</div>
 );
