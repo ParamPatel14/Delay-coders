@@ -16,7 +16,8 @@ const CompanyLogin = () => {
       await loginCompany(email, password);
       navigate('/company/panel');
     } catch (err) {
-      setError('Company login failed.');
+      const msg = err?.response?.data?.detail || 'Company login failed.';
+      setError(msg);
     }
   };
 
@@ -61,9 +62,12 @@ const CompanyLogin = () => {
             </button>
           </div>
         </form>
-        <div className="text-center">
+        <div className="text-center space-x-4">
           <Link to="/login" className="text-indigo-600 hover:text-indigo-500">
             Sign in as User
+          </Link>
+          <Link to="/company/register" className="text-indigo-600 hover:text-indigo-500">
+            Register Company
           </Link>
         </div>
       </div>

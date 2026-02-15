@@ -13,12 +13,14 @@ import WalletConnect from './WalletConnect';
 import TokensPanel from './TokensPanel';
 import ErrorBoundary from './ErrorBoundary';
 import api from '../api/axios';
-import { LogOut, User, Leaf, Building2 } from 'lucide-react';
+import { LogOut, User, Leaf, Building2, Shield } from 'lucide-react';
 import { useCompanyAuth } from '../context/CompanyAuthContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
     const { company } = useCompanyAuth();
+    const { admin } = useAdminAuth();
     const navigate = useNavigate();
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -69,6 +71,13 @@ const Dashboard = () => {
                             >
                                 <Building2 className="h-4 w-4 mr-2" />
                                 Company Portal
+                            </button>
+                            <button
+                                onClick={() => navigate(admin ? '/admin/panel' : '/admin/login')}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                                <Shield className="h-4 w-4 mr-2" />
+                                Admin Portal
                             </button>
                             <button
                                 onClick={handleLogout}

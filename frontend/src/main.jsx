@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from './context/AuthContext'
 import { CompanyAuthProvider } from './context/CompanyAuthContext'
+import { AdminAuthProvider } from './context/AdminAuthContext'
 import App from './App'
 import './index.css'
 
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <AuthProvider>
           <CompanyAuthProvider>
-            <App />
+            <AdminAuthProvider>
+              <App />
+            </AdminAuthProvider>
           </CompanyAuthProvider>
         </AuthProvider>
       </BrowserRouter>

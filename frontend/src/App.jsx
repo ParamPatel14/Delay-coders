@@ -5,10 +5,13 @@ import CompanyLogin from './components/CompanyLogin';
 import CompanyPanel from './components/CompanyPanel';
 import CompanyDashboard from './components/CompanyDashboard';
 import MarketplacePublic from './components/MarketplacePublic';
+import CompanyRegister from './components/CompanyRegister';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import api from './api/axios';
+import AdminLogin from './components/AdminLogin';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   const [dbStatus, setDbStatus] = useState('Checking...');
@@ -45,7 +48,10 @@ function App() {
       <Route path="/company/login" element={<CompanyLogin />} />
       <Route path="/company/panel" element={<CompanyPanel />} />
       <Route path="/company/dashboard" element={<CompanyDashboard />} />
+      <Route path="/company/register" element={<CompanyRegister />} />
       <Route path="/marketplace" element={<MarketplacePublic />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/panel" element={<AdminPanel />} />
       <Route path="/register" element={<Register />} />
       
       <Route element={<ProtectedRoute />}>

@@ -20,6 +20,40 @@ client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_S
 def get_razorpay_key():
     return {"key": settings.RAZORPAY_KEY_ID}
 
+@router.post("/order-by-category", response_model=schemas.PaymentResponse)
+def create_order_by_category(
+    payment: schemas.PaymentCategoryCreate,
+    current_user: models.User = Depends(dependencies.get_current_user),
+    db: Session = Depends(get_db)
+):
+    amount_in_paisa = payment.amount * 100
+    data = {
+        "amount": amount_in_paisa,
+        "currency": payment.currency,
+        "receipt": f"receipt_order_{current_user.id}",
+        "notes": {
+            "user_id": current_user.id,
+            "email": current_user.email,
+            "category": payment.category,
+            "subcategory": payment.subcategory or ""
+        }
+    }
+    try:
+        order = client.order.create(data=data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error creating Razorpay order: {str(e)}")
+    db_payment = models.Payment(
+        order_id=order['id'],
+        amount=amount_in_paisa,
+        currency=payment.currency,
+        status="created",
+        user_id=current_user.id
+    )
+    db.add(db_payment)
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment
+
 @router.post("/order", response_model=schemas.PaymentResponse)
 def create_order(payment: schemas.PaymentCreate, 
                  current_user: models.User = Depends(dependencies.get_current_user),
@@ -88,13 +122,18 @@ def verify_payment(payment_data: schemas.PaymentVerify,
 
     # Create Transaction Record
     try:
+        tx_category = payment_data.category or "payment"
+        subcat = payment_data.subcategory or None
+        description = f"Payment for Order {db_payment.order_id}"
+        if tx_category and subcat:
+            description = f"{tx_category} - {subcat} | Order {db_payment.order_id}"
         transaction = models.Transaction(
             user_id=db_payment.user_id,
             amount=db_payment.amount,
             currency=db_payment.currency,
             type="debit", # User paid money
-            category="payment",
-            description=f"Payment for Order {db_payment.order_id}",
+            category=tx_category,
+            description=description,
             status="completed",
             payment_id=db_payment.id
         )
@@ -103,13 +142,15 @@ def verify_payment(payment_data: schemas.PaymentVerify,
         db.refresh(transaction)
 
         # Calculate and record carbon emission
-        # For payments, we might want to categorize them. 
-        # Currently, the category is hardcoded as "payment".
-        # We might want to allow users to select a category during payment in the future.
-        # For now, we'll default to "Shopping" or "Other" if "payment" is not in factors.
-        # Or better, let's map "payment" to "Shopping" for this demo context?
-        # Or just pass "Shopping" as the category for carbon calc.
-        carbon_category = "Shopping" 
+        carbon_map = {
+            "Gas": "Utilities",
+            "Shopping": "Shopping",
+            "Travel": "Travel",
+            "Sustainable Travel": "Travel",
+            "Others": "Other",
+            "payment": "Shopping"
+        }
+        carbon_category = carbon_map.get(tx_category, "Other")
         
         carbon_record = carbon.calculate_and_record_carbon(
             db=db,

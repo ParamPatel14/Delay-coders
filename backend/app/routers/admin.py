@@ -77,3 +77,22 @@ def reject_listing(listing_id: int, token: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(l)
     return {"id": l.id, "status": l.status}
+
+@router.get("/listings/pending")
+def pending_listings(token: str, db: Session = Depends(get_db), skip: int = 0, limit: int = 50):
+    _ = get_current_admin(token, db)
+    rows = db.query(models.CarbonCreditListing)\
+        .filter(models.CarbonCreditListing.status == "PENDING")\
+        .order_by(models.CarbonCreditListing.created_at.desc())\
+        .offset(skip).limit(limit).all()
+    return [
+        {
+            "id": r.id,
+            "credit_id": r.credit_id,
+            "seller_user_id": r.seller_user_id,
+            "credit_amount": r.credit_amount,
+            "price_per_credit": r.price_per_credit,
+            "status": r.status,
+            "created_at": r.created_at
+        } for r in rows
+    ]

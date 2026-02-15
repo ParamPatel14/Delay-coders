@@ -37,6 +37,10 @@ export const CompanyAuthProvider = ({ children }) => {
     setCompany(null);
   };
 
+  const registerCompany = async (email, password, name) => {
+    const res = await api.post('/companies/register', { email, password, name });
+    return res.data;
+  };
   const connectWallet = async (wallet_address) => {
     const token = localStorage.getItem('company_token');
     const res = await api.post('/companies/connect-wallet', { wallet_address }, { params: { token } });
@@ -45,7 +49,7 @@ export const CompanyAuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const value = { company, loading, loginCompany, logoutCompany, connectWallet };
+  const value = { company, loading, loginCompany, logoutCompany, connectWallet, registerCompany };
   return (
     <CompanyAuthContext.Provider value={value}>
       {!loading && children}

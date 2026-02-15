@@ -8,6 +8,8 @@ const Payment = ({ onSuccess }) => {
     const [amount, setAmount] = useState(500); // Default 500 INR
     const [contact, setContact] = useState("9999999999");
     const [loading, setLoading] = useState(false);
+    const [category, setCategory] = useState('Shopping');
+    const [subcategory, setSubcategory] = useState('');
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
@@ -38,10 +40,12 @@ const Payment = ({ onSuccess }) => {
             // 2. Get Key ID from backend
             const { data: { key } } = await api.get('/payments/key');
 
-            // 3. Create Order
-            const { data: orderData } = await api.post('/payments/order', {
+            // 3. Create Order by Category
+            const { data: orderData } = await api.post('/payments/order-by-category', {
                 amount: amount,
-                currency: "INR"
+                currency: "INR",
+                category,
+                subcategory: subcategory || null
             });
 
             // 4. Configure Options
@@ -57,9 +61,11 @@ const Payment = ({ onSuccess }) => {
                         const verifyRes = await api.post('/payments/verify', {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
+                            razorpay_signature: response.razorpay_signature,
+                            category,
+                            subcategory: subcategory || null
                         });
-                        alert(verifyRes.data.message);
+                        alert('Payment successful');
                         if (onSuccess) onSuccess(); // Refresh dashboard
                     } catch (error) {
                         console.error(error);
@@ -113,10 +119,48 @@ const Payment = ({ onSuccess }) => {
                 <div className="p-2 bg-green-100 rounded-full mr-3">
                     <CreditCard className="h-5 w-5 text-green-600" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">Add Money</h3>
+                <h3 className="text-lg font-medium text-gray-900">Pay by Category</h3>
             </div>
             
             <div className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Category
+                    </label>
+                    <select
+                        className="block w-full border-gray-300 rounded-md py-2 px-3 border"
+                        value={category}
+                        onChange={(e) => {
+                            setCategory(e.target.value);
+                            setSubcategory('');
+                        }}
+                    >
+                        <option value="Gas">Gas</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Sustainable Travel">Sustainable Travel</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+
+                {category === 'Shopping' && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Shopping Type
+                        </label>
+                        <select
+                            className="block w-full border-gray-300 rounded-md py-2 px-3 border"
+                            value={subcategory}
+                            onChange={(e) => setSubcategory(e.target.value)}
+                        >
+                            <option value="">Select</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                        </select>
+                    </div>
+                )}
+
                 <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
                         Amount (INR)

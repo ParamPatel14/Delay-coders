@@ -96,10 +96,18 @@ class PaymentCreate(BaseModel):
     amount: int  # Amount in INR (will be converted to paisa)
     currency: str = "INR"
 
+class PaymentCategoryCreate(BaseModel):
+    amount: int  # Amount in INR (will be converted to paisa)
+    currency: str = "INR"
+    category: str
+    subcategory: Optional[str] = None
+
 class PaymentVerify(BaseModel):
     razorpay_order_id: str
     razorpay_payment_id: str
     razorpay_signature: str
+    category: Optional[str] = None
+    subcategory: Optional[str] = None
 
 class PaymentResponse(BaseModel):
     id: int

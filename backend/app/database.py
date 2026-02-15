@@ -5,7 +5,17 @@ from .config import settings
 
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+_connect_args = {}
+if "supabase.com" in SQLALCHEMY_DATABASE_URL:
+    _connect_args = {"sslmode": settings.DB_SSLMODE or "require"}
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=settings.DB_POOL_PRE_PING,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_timeout=settings.DB_POOL_TIMEOUT,
+    connect_args=_connect_args,
+)
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -69,6 +69,8 @@ def connect_wallet(payload: dict, token: str, db: Session = Depends(get_db)):
     else:
         rec.wallet_address = address
     db.add(rec)
+    comp.wallet_address = address
+    db.add(comp)
     db.commit()
     db.refresh(rec)
     return {"wallet_address": rec.wallet_address}
