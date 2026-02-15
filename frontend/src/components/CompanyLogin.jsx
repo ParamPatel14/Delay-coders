@@ -26,17 +26,17 @@ const CompanyLogin = () => {
       <div className="max-w-md w-full space-y-7">
         <div className="text-center">
           <h2 className="mt-2 text-2xl font-semibold text-slate-50">
-            Company Login
+            Merchant Login
           </h2>
           <p className="mt-1 text-xs text-slate-400">
-            Access your carbon credit wallet and marketplace.
+            Access your merchant carbon credit wallet and marketplace.
           </p>
         </div>
         <form className="mt-4 space-y-5 bg-slate-900/80 rounded-2xl border border-slate-800 px-5 pt-5 pb-6 shadow-[0_12px_36px_rgba(15,23,42,0.7)]" onSubmit={handleSubmit}>
           {error && <div className="text-amber-300 text-center text-sm mb-1">{error}</div>}
           <div className="space-y-3">
             <div>
-              <label className="block text-sm text-slate-300">Company Email</label>
+              <label className="block text-sm text-slate-300">Merchant Email</label>
               <input
                 type="email"
                 required
@@ -72,7 +72,7 @@ const CompanyLogin = () => {
             Sign in as User
           </Link>
           <Link to="/company/register" className="text-emerald-300 hover:text-emerald-200">
-            Register Company
+            Register Merchant
           </Link>
         </div>
       </div>

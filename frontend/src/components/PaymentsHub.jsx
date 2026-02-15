@@ -100,6 +100,8 @@ const PaymentsHub = () => {
   const [transferMessage, setTransferMessage] = useState('');
   const [insightLoadingId, setInsightLoadingId] = useState(null);
   const [txInsights, setTxInsights] = useState({});
+  const [walletSummary, setWalletSummary] = useState(null);
+  const [upiSummary, setUpiSummary] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -145,12 +147,16 @@ const PaymentsHub = () => {
     setWalletLoading(true);
     setWalletError('');
     try {
-      const [infoRes, txRes] = await Promise.all([
+      const [infoRes, txRes, walletDashRes, upiDashRes] = await Promise.all([
         api.get('/wallets/me'),
         api.get('/wallets/transactions'),
+        api.get('/dashboard/wallet'),
+        api.get('/dashboard/upi-summary'),
       ]);
       setWalletInfo(infoRes.data);
       setWalletTx(txRes.data || []);
+      setWalletSummary(walletDashRes.data || null);
+      setUpiSummary(upiDashRes.data || null);
     } catch (e) {
       setWalletError('Unable to load wallet right now.');
     } finally {
@@ -383,6 +389,48 @@ const PaymentsHub = () => {
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+            <div className="text-xs font-semibold text-slate-500 mb-1">Wallet Balance</div>
+            <div className="text-2xl font-bold text-slate-900">
+              {walletSummary ? `₹${(walletSummary.wallet_balance / 100).toFixed(2)}` : '₹0.00'}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+            <div className="text-xs font-semibold text-slate-500 mb-1">UPI Spent / Received</div>
+            <div className="text-sm text-slate-900">
+              {walletSummary && upiSummary ? (
+                <>
+                  <span className="text-rose-600 mr-3">
+                    Spent ₹{(walletSummary.total_spent / 100).toFixed(2)}
+                  </span>
+                  <span className="text-emerald-600">
+                    Received ₹{(walletSummary.total_received / 100).toFixed(2)}
+                  </span>
+                </>
+              ) : (
+                '₹0.00 / ₹0.00'
+              )}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+            <div className="text-xs font-semibold text-slate-500 mb-1">Impact & Points</div>
+            <div className="text-xs text-slate-700">
+              {walletSummary ? (
+                <>
+                  <div>Carbon generated: {walletSummary.carbon_generated.toFixed(2)} kg CO₂</div>
+                  <div>Eco points earned: {walletSummary.eco_points_earned}</div>
+                </>
+              ) : (
+                <>
+                  <div>Carbon generated: 0.00 kg CO₂</div>
+                  <div>Eco points earned: 0</div>
+                </>
+              )}
             </div>
           </div>
         </div>

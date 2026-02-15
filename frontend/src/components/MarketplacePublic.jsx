@@ -65,7 +65,7 @@ const MarketplacePublic = () => {
               className="relative px-4 py-2.5 rounded-[9999px] bg-emerald-500 text-white text-sm font-semibold shadow-sm border border-emerald-500 overflow-hidden hover:bg-emerald-600"
             >
               <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.6),transparent_55%)] opacity-60 mix-blend-screen" />
-              <span className="relative text-slate-950">Company Login</span>
+              <span className="relative text-slate-950">Merchant Login</span>
             </button>
           </div>
         </div>
@@ -89,7 +89,7 @@ const MarketplacePublic = () => {
                   <div className="flex items-center justify-between sm:justify-end gap-3">
                     <div className="hidden md:flex items-center text-xs text-emerald-800">
                       <Info className="h-4 w-4 mr-1 text-emerald-300/80" />
-                      Login to Company Portal to purchase
+                      Login to Merchant Portal to purchase
                     </div>
                     <div className="flex items-center rounded-[9999px] border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-900">
                       <Filter className="h-4 w-4 mr-2 text-emerald-500" />

@@ -34,15 +34,15 @@ const CompanyRegister = () => {
             <Building2 className="h-6 w-6 text-emerald-400" />
           </div>
           <div className="ml-3">
-            <div className="text-lg font-semibold text-slate-50">Register Company</div>
-            <div className="text-sm text-slate-400">Create company account</div>
+            <div className="text-lg font-semibold text-slate-50">Register Merchant</div>
+            <div className="text-sm text-slate-400">Create merchant account</div>
           </div>
         </div>
         {error && <div className="text-amber-300 mb-3 text-sm">{error}</div>}
         {success && <div className="text-emerald-300 mb-3 text-sm">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-300">Company Name</label>
+            <label className="block text-sm text-slate-300">Merchant Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}

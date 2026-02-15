@@ -8,6 +8,7 @@ from ..database import get_db
 from ..services import user_level, challenges
 from ..services import carbon_credit_service
 from ..services import carbon_credit_blockchain_service as cc_chain
+from ..services import wallet_service, upi_service, eco_points, carbon
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -120,4 +121,93 @@ def get_dashboard_summary(
         "streak": streak,
         "challenges": challenges_status,
         "leaderboard": leaderboard
+    }
+
+
+@router.get("/wallet")
+def get_wallet_overview(
+    current_user: models.User = Depends(dependencies.get_current_user),
+    db: Session = Depends(get_db),
+):
+    upi_account = upi_service.get_or_create_user_upi(db, current_user)
+    wallet = wallet_service.create_wallet(db, "USER", current_user.id, upi_account.vpa)
+    vpa = upi_account.vpa
+    spent = (
+        db.query(func.sum(models.UpiTransaction.amount))
+        .filter(
+            models.UpiTransaction.sender_upi_id == vpa,
+            models.UpiTransaction.status == "SUCCESS",
+        )
+        .scalar()
+        or 0
+    )
+    received = (
+        db.query(func.sum(models.UpiTransaction.amount))
+        .filter(
+            models.UpiTransaction.receiver_upi_id == vpa,
+            models.UpiTransaction.status == "SUCCESS",
+        )
+        .scalar()
+        or 0
+    )
+    total_carbon = (
+        db.query(func.sum(models.CarbonRecord.carbon_emission))
+        .filter(models.CarbonRecord.user_id == current_user.id)
+        .scalar()
+        or 0.0
+    )
+    bal = db.query(models.EcoPointsBalance).filter(
+        models.EcoPointsBalance.user_id == current_user.id
+    ).first()
+    eco_earned = bal.lifetime_points if bal and bal.lifetime_points is not None else 0
+    return {
+        "wallet_balance": wallet.balance,
+        "total_spent": int(spent),
+        "total_received": int(received),
+        "carbon_generated": float(round(total_carbon, 4)),
+        "eco_points_earned": int(eco_earned),
+    }
+
+
+@router.get("/upi-summary")
+def get_upi_summary(
+    current_user: models.User = Depends(dependencies.get_current_user),
+    db: Session = Depends(get_db),
+):
+    upi_account = upi_service.get_or_create_user_upi(db, current_user)
+    vpa = upi_account.vpa
+    spent = (
+        db.query(func.sum(models.UpiTransaction.amount))
+        .filter(
+            models.UpiTransaction.sender_upi_id == vpa,
+            models.UpiTransaction.status == "SUCCESS",
+        )
+        .scalar()
+        or 0
+    )
+    received = (
+        db.query(func.sum(models.UpiTransaction.amount))
+        .filter(
+            models.UpiTransaction.receiver_upi_id == vpa,
+            models.UpiTransaction.status == "SUCCESS",
+        )
+        .scalar()
+        or 0
+    )
+    total_carbon = (
+        db.query(func.sum(models.CarbonRecord.carbon_emission))
+        .filter(models.CarbonRecord.user_id == current_user.id)
+        .scalar()
+        or 0.0
+    )
+    bal = db.query(models.EcoPointsBalance).filter(
+        models.EcoPointsBalance.user_id == current_user.id
+    ).first()
+    eco_earned = bal.lifetime_points if bal and bal.lifetime_points is not None else 0
+    return {
+        "upi_vpa": vpa,
+        "total_spent": int(spent),
+        "total_received": int(received),
+        "carbon_generated": float(round(total_carbon, 4)),
+        "eco_points_earned": int(eco_earned),
     }

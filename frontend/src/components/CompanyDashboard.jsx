@@ -60,9 +60,14 @@ const CompanyDashboard = () => {
         <div className="relative rounded-[30px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.42),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(52,211,153,0.34),transparent_60%)] shadow-sm mb-7">
           <div className="bg-white rounded-[28px] border border-emerald-100 px-6 pt-5 pb-6 flex items-center justify-between backdrop-blur-xl">
             <div className="flex flex-col gap-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Company Dashboard</div>
-              <div className="text-2xl font-extrabold tracking-tight text-slate-900">{company?.email}</div>
-              <div className="mt-1 inline-flex items-center px-3 py-1 bg-emerald-50 rounded-full border border-emerald-200 text-[11px] text-emerald-800">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">Merchant Dashboard</div>
+              <div className="text-2xl font-extrabold tracking-tight text-slate-900">
+                {company?.name || company?.email}
+              </div>
+              <div className="text-xs text-slate-500">
+                {company?.email}
+              </div>
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-emerald-50 rounded-full border border-emerald-200 text-[11px] text-emerald-800">
                 <Wallet className="h-3.5 w-3.5 mr-2" />
                 {company?.wallet_address ? 'Wallet Connected' : 'Wallet Not Connected'}
               </div>

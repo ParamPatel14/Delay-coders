@@ -133,8 +133,11 @@ const CompanyPanel = () => {
               <Building2 className="h-4 w-4 text-emerald-400" />
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800">Company Portal</div>
-              <div className="text-sm font-semibold text-slate-900">{company.email}</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800">Merchant Portal</div>
+              <div className="text-sm font-semibold text-slate-900">
+                {company.name || company.email}
+              </div>
+              <div className="text-[11px] text-slate-500">{company.email}</div>
             </div>
           </div>
           <div className="flex items-center space-x-3 text-xs sm:text-sm">
