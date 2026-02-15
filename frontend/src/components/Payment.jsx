@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { CreditCard, Loader2, ShoppingCart, Car, Plane, Leaf, Package } from 'lucide-react';
 
 const Payment = ({ onSuccess }) => {
     const { user } = useAuth();
@@ -113,6 +113,59 @@ const Payment = ({ onSuccess }) => {
         }
     };
 
+    const presetMap = {
+        Gas: [500, 1000, 2000],
+        Shopping: {
+            Groceries: [500, 800, 1200],
+            Electronics: [5000, 10000, 20000],
+            Clothing: [1000, 2500, 4000]
+        },
+        Travel: [2000, 5000, 10000],
+        Others: [300, 700, 1500]
+    };
+
+    const CategoryTile = ({ value, icon: Icon }) => (
+        <button
+            type="button"
+            className={`flex items-center justify-center border rounded-md px-3 py-2 text-sm w-full ${category === value ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+            onClick={() => {
+                setCategory(value);
+                setSubcategory('');
+                const presets = Array.isArray(presetMap[value]) ? presetMap[value] : presetMap[value]?.[subcategory] || [];
+                if (presets && presets.length) setAmount(presets[0]);
+            }}
+        >
+            <Icon className="h-4 w-4 mr-2" />
+            {value}
+        </button>
+    );
+
+    const renderPresets = () => {
+        let presets = [];
+        if (category === 'Shopping') {
+            if (subcategory && presetMap.Shopping[subcategory]) {
+                presets = presetMap.Shopping[subcategory];
+            }
+        } else {
+            presets = Array.isArray(presetMap[category]) ? presetMap[category] : [];
+        }
+        if (!presets || presets.length === 0) return null;
+        return (
+            <div className="flex space-x-2">
+                {presets.map((p) => (
+                    <button
+                        key={p}
+                        type="button"
+                        className={`px-3 py-1 rounded-md border text-sm ${amount === p ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+                        onClick={() => setAmount(p)}
+                    >
+                        ₹{p}
+                    </button>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
             <div className="flex items-center mb-4">
@@ -124,42 +177,56 @@ const Payment = ({ onSuccess }) => {
             
             <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                    </label>
-                    <select
-                        className="block w-full border-gray-300 rounded-md py-2 px-3 border"
-                        value={category}
-                        onChange={(e) => {
-                            setCategory(e.target.value);
-                            setSubcategory('');
-                        }}
-                    >
-                        <option value="Gas">Gas</option>
-                        <option value="Shopping">Shopping</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Sustainable Travel">Sustainable Travel</option>
-                        <option value="Others">Others</option>
-                    </select>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <CategoryTile value="Gas" icon={Car} />
+                        <CategoryTile value="Shopping" icon={ShoppingCart} />
+                        <CategoryTile value="Travel" icon={Plane} />
+                        <CategoryTile value="Others" icon={Package} />
+                    </div>
                 </div>
 
                 {category === 'Shopping' && (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Shopping Type
-                        </label>
-                        <select
-                            className="block w-full border-gray-300 rounded-md py-2 px-3 border"
-                            value={subcategory}
-                            onChange={(e) => setSubcategory(e.target.value)}
-                        >
-                            <option value="">Select</option>
-                            <option value="Groceries">Groceries</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Shopping Type</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {['Groceries', 'Electronics', 'Clothing'].map((opt) => (
+                                <button
+                                    key={opt}
+                                    type="button"
+                                    className={`px-3 py-2 rounded-md border text-sm ${subcategory === opt ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+                                    onClick={() => {
+                                        setSubcategory(opt);
+                                        const presets = presetMap.Shopping[opt];
+                                        if (presets && presets.length) setAmount(presets[0]);
+                                    }}
+                                >
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
+
+                {category === 'Travel' && (
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700">Sustainable option</span>
+                        <button
+                            type="button"
+                            className={`px-3 py-1 rounded-full border text-xs ${subcategory === 'Sustainable' ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+                            onClick={() => {
+                                const next = subcategory === 'Sustainable' ? '' : 'Sustainable';
+                                setSubcategory(next);
+                                const presets = presetMap.Travel;
+                                if (presets && presets.length) setAmount(next ? 1500 : presets[0]);
+                            }}
+                        >
+                            {subcategory === 'Sustainable' ? 'Enabled' : 'Enable'}
+                        </button>
+                    </div>
+                )}
+
+                <div>{renderPresets()}</div>
 
                 <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">

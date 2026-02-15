@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import api from './api/axios';
 import AdminLogin from './components/AdminLogin';
 import AdminPanel from './components/AdminPanel';
+import PaymentsHub from './components/PaymentsHub';
 
 function App() {
   const [dbStatus, setDbStatus] = useState('Checking...');
@@ -56,6 +57,7 @@ function App() {
       
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/pay" element={<PaymentsHub />} />
       </Route>
       
       <Route path="/" element={<Navigate to="/login" />} />

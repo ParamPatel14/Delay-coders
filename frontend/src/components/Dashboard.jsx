@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Payment from './Payment';
 import DashboardSummary from './DashboardSummary';
 import TransactionList from './TransactionList';
 import CarbonList from './CarbonList';
@@ -45,10 +44,7 @@ const Dashboard = () => {
         fetchSummary();
     }, []);
 
-    // Callback to refresh data after a payment
-    const handlePaymentSuccess = () => {
-        fetchSummary();
-    };
+    // Removed inline Payment card; payments moved to dedicated /pay page
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
@@ -71,6 +67,12 @@ const Dashboard = () => {
                             >
                                 <Building2 className="h-4 w-4 mr-2" />
                                 Company Portal
+                            </button>
+                            <button
+                                onClick={() => navigate('/pay')}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                                Payments
                             </button>
                             <button
                                 onClick={() => navigate(admin ? '/admin/panel' : '/admin/login')}
@@ -159,10 +161,9 @@ const Dashboard = () => {
                          </div>
                     </div>
 
-                    {/* Sidebar - Payment & Actions */}
+                    {/* Sidebar - Actions */}
                     <div className="space-y-6">
                         <h2 className="text-xl font-semibold text-gray-800">Quick Actions</h2>
-                        <Payment onSuccess={handlePaymentSuccess} />
                         
                         <WalletConnect />
                         <ErrorBoundary>
