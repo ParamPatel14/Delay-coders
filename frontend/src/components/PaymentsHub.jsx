@@ -6,16 +6,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
-
 const tiles = [
   { key: 'upi_qr', label: 'UPI QR', icon: ScanLine, category: 'Others', subcategory: 'UPI' },
   { key: 'upi_id', label: 'UPI ID', icon: CreditCard, category: 'Others', subcategory: 'UPI' },
@@ -192,89 +182,47 @@ const PaymentsHub = () => {
   const payNow = async () => {
     if (!category) return;
     setLoading(true);
-    const ok = await loadRazorpayScript();
-    if (!ok) {
-      alert('Razorpay SDK failed to load.');
-      setLoading(false);
-      return;
-    }
     try {
-      const { data: { key } } = await api.get('/payments/key');
+      const effectiveCategory = category === 'Travel' && sustainable ? 'Sustainable Travel' : category;
+      const computedSubcategory = (() => {
+        const base = subcategory || '';
+        if (provider) {
+          return base ? `${base}:${provider}` : provider;
+        }
+        if (selected === 'upi_id' && upiId) {
+          return `UPI:ID:${upiId.trim()}`;
+        }
+        if (selected === 'upi_qr') {
+          const tag = 'UPI:QR';
+          const info = upiQrText ? `:${upiQrText.slice(0, 128)}` : '';
+          return `${tag}${info}`;
+        }
+        return base || null;
+      })();
+
       const { data: orderData } = await api.post('/payments/order-by-category', {
         amount,
         currency: 'INR',
-        category: category === 'Travel' && sustainable ? 'Sustainable Travel' : category,
-        subcategory: (() => {
-          const base = subcategory || '';
-          if (provider) {
-            return base ? `${base}:${provider}` : provider;
-          }
-          if (selected === 'upi_id' && upiId) {
-            return `UPI:ID:${upiId.trim()}`;
-          }
-          if (selected === 'upi_qr') {
-            const tag = 'UPI:QR';
-            const info = upiQrText ? `:${upiQrText.slice(0, 128)}` : '';
-            return `${tag}${info}`;
-          }
-          return base || null;
-        })()
+        category: effectiveCategory,
+        subcategory: computedSubcategory
       });
-      const options = {
-        key,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'GreenZaction',
-        description: `${category}${subcategory ? ` - ${subcategory}` : ''}${provider ? ` (${provider})` : ''}${selected === 'upi_qr' && upiQrText ? ` [QR:${upiQrText.slice(0, 64)}]` : ''}${selected === 'upi_id' && upiId ? ` [UPI:${upiId}]` : ''}`,
+      await api.post('/payments/verify', {
         order_id: orderData.order_id,
-        handler: async (response) => {
-          try {
-            await api.post('/payments/verify', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              category: category === 'Travel' && sustainable ? 'Sustainable Travel' : category,
-              subcategory: (() => {
-                const base = subcategory || '';
-                if (provider) {
-                  return base ? `${base}:${provider}` : provider;
-                }
-                if (selected === 'upi_id' && upiId) {
-                  return `UPI:ID:${upiId.trim()}`;
-                }
-                if (selected === 'upi_qr') {
-                  const tag = 'UPI:QR';
-                  const info = upiQrText ? `:${upiQrText.slice(0, 128)}` : '';
-                  return `${tag}${info}`;
-                }
-                return base || null;
-              })()
-            });
-            alert('Payment successful');
-          } catch (err) {
-            console.error(err);
-            alert('Payment verification failed');
-          }
-        },
-        prefill: {
-          name: user?.full_name || 'GreenZaction User',
-          email: user?.email || 'user@example.com',
-          contact
-        },
-        theme: { color: '#10B981' }
-      };
-      const rp = new window.Razorpay(options);
-      rp.open();
+        upi_vpa: selected === 'upi_id' && upiId ? upiId.trim() : undefined,
+        category: effectiveCategory,
+        subcategory: computedSubcategory
+      });
+      alert('Payment successful');
     } catch (error) {
       console.error('Payment Error:', error);
-      alert('Something went wrong during payment initialization.');
+      alert('Something went wrong while processing the payment.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-slate-50 selection:bg-emerald-500/30 relative overflow-hidden">
+    <div className="min-h-screen bg-emerald-50 text-slate-900 selection:bg-emerald-200 relative overflow-hidden">
       <div
         className="pointer-events-none fixed inset-0 opacity-60 mix-blend-soft-light"
         style={{
@@ -282,7 +230,7 @@ const PaymentsHub = () => {
             'radial-gradient(circle_at 16% 0, rgba(16,185,129,0.28), transparent 60%), radial-gradient(circle_at 84% 8%, rgba(245,158,11,0.2), transparent 55%), url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\' viewBox=\'0 0 160 160\'%3E%3Cfilter id=\'n\' x=\'0\' y=\'0\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'noStitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.3\'/%3E%3C/svg%3E")'
         }}
       />
-      <header className="relative border-b border-slate-800/80 bg-[#050505]/80 backdrop-blur-xl">
+      <header className="relative border-b border-emerald-100 bg-white/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-8 w-8 rounded-3xl bg-emerald-500/10 flex items-center justify-center ring-4 ring-emerald-500/20 mr-3">
@@ -290,15 +238,15 @@ const PaymentsHub = () => {
             </div>
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">EcoCent</div>
-              <span className="text-lg font-bold tracking-tight text-slate-50">Payments</span>
+              <span className="text-lg font-bold tracking-tight text-slate-900">Payments</span>
             </div>
           </div>
         </div>
       </header>
       <main className="relative max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-lg font-bold tracking-tight text-slate-50 mb-3">Quick Actions</h2>
-        <div className="relative mb-8 rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.45),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(245,158,11,0.34),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.35)]">
-          <div className="bg-[#050505]/85 rounded-[24px] border border-white/10 backdrop-blur-xl">
+        <h2 className="text-lg font-bold tracking-tight text-slate-900 mb-3">Quick Actions</h2>
+        <div className="relative mb-8 rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.18),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(245,158,11,0.22),transparent_60%)] shadow-sm">
+          <div className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 sm:p-5">
               {tiles.map(({ key, label, icon: Icon }) => (
                 <button
@@ -306,15 +254,15 @@ const PaymentsHub = () => {
                   type="button"
                   className={`group relative flex flex-col items-center justify-center rounded-2xl px-4 py-4 border text-xs sm:text-sm transition ${
                     selected === key
-                      ? 'border-emerald-400/80 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.65)]'
-                      : 'border-white/10 bg-slate-950/60 hover:bg-slate-900/80 hover:shadow-[0_14px_40px_rgba(16,185,129,0.45)]'
+                      ? 'border-emerald-500 bg-emerald-50 shadow-sm'
+                      : 'border-emerald-100 bg-white hover:bg-emerald-50 hover:shadow-sm'
                   }`}
                   onClick={() => pickTile(tiles.find(t => t.key === key))}
                 >
                   <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.4),transparent_55%)] mix-blend-screen" />
                   <div className="relative flex flex-col items-center">
-                    <Icon className="h-6 w-6 text-emerald-400 mb-2" />
-                    <span className="font-medium text-slate-50">{label}</span>
+                    <Icon className="h-6 w-6 text-emerald-500 mb-2" />
+                    <span className="font-medium text-slate-900">{label}</span>
                   </div>
                 </button>
               ))}
@@ -322,10 +270,10 @@ const PaymentsHub = () => {
           </div>
         </div>
 
-        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(148,163,184,0.5),transparent_58%),radial-gradient(circle_at_120%_0,rgba(16,185,129,0.45),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.4)]">
-          <Card className="bg-[#050505]/88 rounded-[24px] border border-white/10 backdrop-blur-xl shadow-[0_24px_80px_rgba(15,118,110,0.65)]">
+        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.5),transparent_58%),radial-gradient(circle_at_120%_0,rgba(52,211,153,0.45),transparent_60%)] shadow-sm">
+          <Card className="bg-white rounded-[24px] border border-emerald-100 backdrop-blur-xl shadow-sm">
           <CardHeader>
-            <CardTitle className="text-slate-50 tracking-tight">Details</CardTitle>
+            <CardTitle className="text-slate-900 tracking-tight">Details</CardTitle>
           </CardHeader>
           <CardContent>
 
@@ -459,33 +407,33 @@ const PaymentsHub = () => {
               {(subcategory === 'Electricity' || category === 'Utilities') && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Consumer Number</label>
-                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 1234567890" />
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Consumer Number</label>
+                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 1234567890" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Billing Unit</label>
-                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 4402" />
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Billing Unit</label>
+                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 4402" />
                   </div>
                 </>
               )}
               {category === 'Gas' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Connection ID</label>
-                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 9876543210" />
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Connection ID</label>
+                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 9876543210" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Registered Mobile</label>
-                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., 9999999999" />
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Registered Mobile</label>
+                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., 9999999999" />
                   </div>
                 </>
               )}
               {category === 'Travel' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Travel Mode</label>
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Travel Mode</label>
                     <select
-                      className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm bg-slate-950/80 text-slate-100"
+                      className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm bg-white text-slate-900"
                       value={subcategory}
                       onChange={(e) => setSubcategory(e.target.value)}
                     >
@@ -497,21 +445,21 @@ const PaymentsHub = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">PNR/Booking ID</label>
-                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., ABC1234567" />
+                    <label className="block text-sm font-medium text-slate-900 mb-1">PNR/Booking ID</label>
+                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., ABC1234567" />
                   </div>
                 </>
               )}
               {category === 'Shopping' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Order ID</label>
-                    <Input className="w-full bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500" placeholder="e.g., ORD-001234" />
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Order ID</label>
+                    <Input className="w-full bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400" placeholder="e.g., ORD-001234" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-1">Merchant</label>
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Merchant</label>
                     <select
-                      className="border border-slate-700 rounded-xl w-full px-3 py-2 text-sm bg-slate-950/80 text-slate-100"
+                      className="border border-emerald-100 rounded-xl w-full px-3 py-2 text-sm bg-white text-slate-900"
                       value={provider}
                       onChange={(e) => setProvider(e.target.value)}
                     >
@@ -529,15 +477,15 @@ const PaymentsHub = () => {
           <div className="mb-4">{renderPresets()}</div>
 
           <div className="mb-4">
-            <label htmlFor="amount" className="block text-sm font-medium text-slate-200 mb-1">Amount (INR)</label>
+            <label htmlFor="amount" className="block text-sm font-medium text-slate-900 mb-1">Amount (INR)</label>
             <div className="relative rounded-xl">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-slate-400 sm:text-sm">₹</span>
+                <span className="text-emerald-700 sm:text-sm">₹</span>
               </div>
               <Input
                 type="number"
                 id="amount"
-                className="block w-full pl-7 pr-12 bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
+                className="block w-full pl-7 pr-12 bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
@@ -546,11 +494,11 @@ const PaymentsHub = () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="contact" className="block text-sm font-medium text-slate-200 mb-1">Phone Number</label>
+            <label htmlFor="contact" className="block text-sm font-medium text-slate-900 mb-1">Phone Number</label>
             <Input
               type="tel"
               id="contact"
-              className="bg-slate-950/80 border-slate-700 text-slate-100 placeholder:text-slate-500"
+              className="bg-white border-emerald-100 text-slate-900 placeholder:text-slate-400"
               placeholder="9999999999"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
@@ -567,7 +515,7 @@ const PaymentsHub = () => {
               {loading ? 'Processing...' : 'Pay Now'}
             </span>
           </Button>
-          <p className="text-xs text-center text-slate-400 mt-2">Secured by Razorpay</p>
+          <p className="text-xs text-center text-slate-400 mt-2">Processed by GreenZaction Pay</p>
           </CardContent>
         </Card>
         </div>

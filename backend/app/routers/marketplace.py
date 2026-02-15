@@ -10,15 +10,12 @@ from jose import jwt, JWTError
 from .. import models
 from ..database import get_db
 
-import razorpay
 from ..services import purchase_service
 from ..services import logging_service
 from ..services import credit_transfer_service
 from sqlalchemy import func
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
-
-client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 @router.get("/listings")
 def get_listings(
@@ -118,37 +115,25 @@ def create_company_order(payload: dict, token: str, db: Session = Depends(get_db
     if not order:
         raise HTTPException(status_code=400, detail="Unable to create order")
     amount_paisa = int(order.total_price * 100)
-    try:
-        rz = client.order.create({"amount": amount_paisa, "currency": "INR", "receipt": f"cmp_order_{order.id}", "notes": {"company_id": comp.id, "order_id": order.id}})
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Razorpay error: {str(e)}")
     logging_service.log_event(db, "TRANSACTION", None, f"company {comp.id} order {order.id} created")
-    return {"marketplace_order_id": order.id, "razorpay_order_id": rz["id"], "amount": amount_paisa, "currency": "INR", "key": settings.RAZORPAY_KEY_ID}
+    return {
+        "marketplace_order_id": order.id,
+        "amount": amount_paisa,
+        "currency": "INR"
+    }
 
 @router.post("/company-verify")
 def verify_company_payment(payload: dict, token: str, db: Session = Depends(get_db)):
     comp = _get_current_company(token, db)
     marketplace_order_id = int(payload.get("marketplace_order_id", 0))
-    razorpay_order_id = payload.get("razorpay_order_id")
-    razorpay_payment_id = payload.get("razorpay_payment_id")
-    razorpay_signature = payload.get("razorpay_signature")
-    try:
-        client.utility.verify_payment_signature({
-            'razorpay_order_id': razorpay_order_id,
-            'razorpay_payment_id': razorpay_payment_id,
-            'razorpay_signature': razorpay_signature
-        })
-    except razorpay.errors.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Payment verification failed")
     order = db.query(models.MarketplaceOrder).filter(models.MarketplaceOrder.id == marketplace_order_id, models.MarketplaceOrder.company_id == comp.id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     order.status = "COMPLETED"
-    order.razorpay_payment_id = razorpay_payment_id
     db.add(order)
     db.commit()
     db.refresh(order)
-    logging_service.log_event(db, "TRANSACTION", None, f"company {comp.id} order {order.id} payment {razorpay_payment_id}")
+    logging_service.log_event(db, "TRANSACTION", None, f"company {comp.id} order {order.id} payment COMPLETED")
     res = credit_transfer_service.transfer_to_company(db, order.id)
     if not res:
         raise HTTPException(status_code=400, detail="Token transfer failed")

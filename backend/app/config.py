@@ -14,9 +14,6 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     GOOGLE_REDIRECT_URI: Optional[str] = "http://localhost:8000/auth/google/callback"
-    
-    RAZORPAY_KEY_ID: str = "rzp_test_placeholder"
-    RAZORPAY_KEY_SECRET: str = "placeholder_secret"
     CHAIN_RPC_URL: Optional[str] = None
     ECO_TOKEN_ADDRESS: Optional[str] = None
     ECO_TOKEN_OWNER_PRIVATE_KEY: Optional[str] = None

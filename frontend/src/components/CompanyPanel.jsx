@@ -95,46 +95,30 @@ const CompanyPanel = () => {
 
   const purchase = async (listing) => {
     const token = localStorage.getItem('company_token');
-    const keyRes = await api.get('/payments/key');
-    const orderRes = await api.post('/marketplace/company-order', { listing_id: listing.id, credit_amount: listing.credit_amount }, { params: { token } });
-    const ok = await loadRazorpayScript();
-    if (!ok) return;
-    const options = {
-      key: keyRes.data.key,
-      amount: orderRes.data.amount,
-      currency: orderRes.data.currency,
-      name: 'Carbon Credit Purchase',
-      description: `Order #${orderRes.data.marketplace_order_id}`,
-      order_id: orderRes.data.razorpay_order_id,
-      handler: async function (response) {
-        const verify = await api.post('/marketplace/company-verify', {
-          marketplace_order_id: orderRes.data.marketplace_order_id,
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature
-        }, { params: { token } });
-        const res = await api.get('/marketplace/listings');
-        setListings(res.data);
-      }
-    };
-    const rz = new window.Razorpay(options);
-    rz.open();
-  };
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
+    try {
+      const orderRes = await api.post(
+        '/marketplace/company-order',
+        { listing_id: listing.id, credit_amount: listing.credit_amount },
+        { params: { token } }
+      );
+      await api.post(
+        '/marketplace/company-verify',
+        { marketplace_order_id: orderRes.data.marketplace_order_id },
+        { params: { token } }
+      );
+      const res = await api.get('/marketplace/listings');
+      setListings(res.data);
+      alert('Purchase successful');
+    } catch (err) {
+      console.error(err);
+      alert('Purchase failed, please try again.');
+    }
   };
 
   if (!company) return null;
 
   return (
-    <div className="min-h-screen bg-[#030303] text-slate-50 selection:bg-emerald-500/30 relative overflow-hidden">
+    <div className="min-h-screen bg-emerald-50 text-slate-900 selection:bg-emerald-200 relative overflow-hidden">
       <div
         className="pointer-events-none fixed inset-0 opacity-60 mix-blend-soft-light"
         style={{
@@ -142,32 +126,32 @@ const CompanyPanel = () => {
             'radial-gradient(circle_at 18% 0, rgba(16,185,129,0.26), transparent 60%), radial-gradient(circle_at 82% 8%, rgba(245,158,11,0.18), transparent 55%), url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\' viewBox=\'0 0 160 160\'%3E%3Cfilter id=\'n\' x=\'0\' y=\'0\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'noStitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.3\'/%3E%3C/svg%3E")'
         }}
       />
-      <nav className="relative border-b border-slate-800/80 bg-[#050505]/80 backdrop-blur-xl">
+      <nav className="relative border-b border-emerald-100 bg-white/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-7 lg:px-9 py-4 flex justify-between">
           <div className="flex items-center space-x-3">
             <div className="h-8 w-8 rounded-3xl bg-emerald-500/10 flex items-center justify-center ring-4 ring-emerald-500/20">
               <Building2 className="h-4 w-4 text-emerald-400" />
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Company Portal</div>
-              <div className="text-sm font-semibold text-slate-50">{company.email}</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800">Company Portal</div>
+              <div className="text-sm font-semibold text-slate-900">{company.email}</div>
             </div>
           </div>
           <div className="flex items-center space-x-3 text-xs sm:text-sm">
             <button
-              className="text-slate-300 hover:text-emerald-300"
+              className="text-emerald-800 hover:text-emerald-600"
               onClick={() => navigate('/company/dashboard')}
             >
               Dashboard
             </button>
             <button
-              className="text-slate-300 hover:text-emerald-300"
+              className="text-emerald-800 hover:text-emerald-600"
               onClick={() => navigate('/marketplace')}
             >
               Marketplace
             </button>
             <button
-              className="text-slate-300 hover:text-amber-300"
+              className="text-emerald-800 hover:text-amber-600"
               onClick={logoutCompany}
             >
               Logout
@@ -176,12 +160,12 @@ const CompanyPanel = () => {
         </div>
       </nav>
       <main className="relative max-w-7xl mx-auto py-9 px-4 sm:px-7 lg:px-9 space-y-7">
-        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.45),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(245,158,11,0.34),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.38)]">
-          <div className="bg-[#050505]/85 px-5 pt-5 pb-6 rounded-[24px] shadow-[0_24px_80px_rgba(15,118,110,0.65)] border border-white/10 backdrop-blur-xl">
+        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.45),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(52,211,153,0.34),transparent_60%)] shadow-sm">
+          <div className="bg-white px-5 pt-5 pb-6 rounded-[24px] shadow-sm border border-emerald-100 backdrop-blur-xl">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-slate-50">Company Wallet</h2>
-              <div className="mt-1 text-xs text-slate-400">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-900">Company Wallet</h2>
+              <div className="mt-1 text-xs text-emerald-800">
                 Manage the wallet used for purchasing carbon credits.
               </div>
             </div>
@@ -221,42 +205,41 @@ const CompanyPanel = () => {
               </div>
               <button
                 onClick={connectWithMetaMask}
-                className="mt-3 px-3.5 py-2 rounded-[20px] border border-slate-700 bg-slate-900 flex items-center text-xs sm:text-sm text-slate-200 hover:bg-slate-800"
+                className="mt-3 px-3.5 py-2 rounded-[20px] border border-emerald-200 bg-white flex items-center text-xs sm:text-sm text-emerald-900 hover:bg-emerald-50"
               >
-                <PlugZap className="h-4 w-4 mr-2 text-amber-400" /> Use MetaMask
+                <PlugZap className="h-4 w-4 mr-2 text-amber-500" /> Use MetaMask
               </button>
             </div>
-            <div className="bg-slate-900/90 rounded-xl border border-white/10 px-4 pt-4 pb-5 shadow-[0_18px_60px_rgba(16,185,129,0.4)]">
-              <div className="text-xs text-slate-400">Status</div>
-              <div className="mt-2 text-sm sm:text-base font-semibold text-slate-50">
+            <div className="bg-white rounded-xl border border-emerald-100 px-4 pt-4 pb-5 shadow-sm">
+              <div className="text-xs text-emerald-800">Status</div>
+              <div className="mt-2 text-sm sm:text-base font-semibold text-slate-900">
                 {company.wallet_address ? 'Ready to purchase credits' : 'Connect wallet to purchase'}
               </div>
             </div>
           </div>
           </div>
         </div>
-        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(148,163,184,0.52),transparent_58%),radial-gradient(circle_at_120%_0,rgba(16,185,129,0.45),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.36)]">
-          <div className="bg-[#050505]/88 px-5 pt-5 pb-6 rounded-[24px] shadow-[0_24px_80px_rgba(15,118,110,0.6)] border border-white/10 backdrop-blur-xl">
-          <h2 className="text-base sm:text-lg font-semibold text-slate-50 mb-3">Marketplace Listings</h2>
+        <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.52),transparent_58%),radial-gradient(circle_at_120%_0,rgba(52,211,153,0.45),transparent_60%)] shadow-sm">
+          <div className="bg-white px-5 pt-5 pb-6 rounded-[24px] shadow-sm border border-emerald-100 backdrop-blur-xl">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-3">Marketplace Listings</h2>
           {loading ? (
-            <div className="text-xs sm:text-sm text-slate-400">Loading...</div>
+            <div className="text-xs sm:text-sm text-emerald-800">Loading...</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {listings.map(l => (
                 <div
                   key={l.id}
-                  className="border border-white/10 rounded-[20px] p-4 bg-slate-950/70 hover:bg-slate-900/90 hover:shadow-[0_0_26px_rgba(16,185,129,0.7)] transition-all backdrop-blur-lg"
+                  className="border border-emerald-100 rounded-[20px] p-4 bg-white hover:bg-emerald-50 hover:shadow-sm transition-all"
                 >
-                  <div className="text-sm font-medium text-slate-50">Listing #{l.id}</div>
-                  <div className="mt-1 text-xs sm:text-sm text-slate-300">Credits: {l.credit_amount}</div>
-                  <div className="text-xs sm:text-sm text-slate-300">Price/Credit: {l.price_per_credit}</div>
-                  <div className="text-xs sm:text-sm text-slate-400">Seller: {l.seller_user_id}</div>
+                  <div className="text-sm font-medium text-slate-900">Listing #{l.id}</div>
+                  <div className="mt-1 text-xs sm:text-sm text-emerald-800">Credits: {l.credit_amount}</div>
+                  <div className="text-xs sm:text-sm text-emerald-800">Price/Credit: {l.price_per_credit}</div>
+                  <div className="text-xs sm:text-sm text-emerald-700">Seller: {l.seller_user_id}</div>
                   <button
                     onClick={() => purchase(l)}
-                    className="relative mt-3 bg-emerald-500/20 text-emerald-100 px-3.5 py-2 text-sm rounded-[9999px] flex items-center font-semibold border border-emerald-400/70 shadow-[0_0_24px_rgba(16,185,129,0.65)] hover:bg-emerald-400/30"
+                    className="relative mt-3 bg-emerald-500 text-slate-950 px-3.5 py-2 text-sm rounded-[9999px] flex items-center font-semibold border border-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 shadow-sm"
                   >
-                    <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.55),transparent_55%)] opacity-60 mix-blend-screen" />
-                    <span className="relative flex items-center">
+                    <span className="relative flex items-center mx-auto">
                       <ShoppingCart className="h-4 w-4 mr-2" /> Purchase
                     </span>
                   </button>

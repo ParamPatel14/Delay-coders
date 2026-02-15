@@ -103,9 +103,9 @@ class PaymentCategoryCreate(BaseModel):
     subcategory: Optional[str] = None
 
 class PaymentVerify(BaseModel):
-    razorpay_order_id: str
-    razorpay_payment_id: str
-    razorpay_signature: str
+    order_id: str
+    upi_vpa: Optional[str] = None
+    upi_txn_id: Optional[str] = None
     category: Optional[str] = None
     subcategory: Optional[str] = None
 
@@ -118,6 +118,48 @@ class PaymentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UpiAccountResponse(BaseModel):
+    vpa: str
+    display_name: Optional[str] = None
+    is_merchant: bool
+
+    class Config:
+        from_attributes = True
+
+class UpiPaymentRequestCreate(BaseModel):
+    amount: int
+    currency: str = "INR"
+    note: Optional[str] = None
+    payee_vpa: Optional[str] = None
+
+class UpiPaymentResponse(BaseModel):
+    request_id: str
+    upi_txn_id: Optional[str] = None
+    payer_vpa: str
+    payee_vpa: str
+    amount: int
+    currency: str
+    status: str
+    created_at: datetime
+
+class UpiPaymentHistoryItem(BaseModel):
+    request_id: str
+    upi_txn_id: Optional[str] = None
+    payer_vpa: str
+    payee_vpa: str
+    amount: int
+    currency: str
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class UpiQrResponse(BaseModel):
+    request_id: str
+    upi_uri: str
+    qr_image_base64: str
 
 class TransactionBase(BaseModel):
     amount: int

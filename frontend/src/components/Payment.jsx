@@ -5,109 +5,33 @@ import { CreditCard, Loader2, ShoppingCart, Car, Plane, Leaf, Package } from 'lu
 
 const Payment = ({ onSuccess }) => {
     const { user } = useAuth();
-    const [amount, setAmount] = useState(500); // Default 500 INR
+    const [amount, setAmount] = useState(500);
     const [contact, setContact] = useState("9999999999");
     const [loading, setLoading] = useState(false);
     const [category, setCategory] = useState('Shopping');
     const [subcategory, setSubcategory] = useState('');
 
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            const script = document.createElement('script');
-            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-            script.onload = () => {
-                resolve(true);
-            };
-            script.onerror = () => {
-                resolve(false);
-            };
-            document.body.appendChild(script);
-        });
-    };
-
     const handlePayment = async () => {
         setLoading(true);
-        
-        // 1. Load Razorpay Script
-        const res = await loadRazorpayScript();
-        if (!res) {
-            alert('Razorpay SDK failed to load. Are you online?');
-            setLoading(false);
-            return;
-        }
-
         try {
-            // 2. Get Key ID from backend
-            const { data: { key } } = await api.get('/payments/key');
-
-            // 3. Create Order by Category
             const { data: orderData } = await api.post('/payments/order-by-category', {
-                amount: amount,
+                amount,
                 currency: "INR",
                 category,
                 subcategory: subcategory || null
             });
 
-            // 4. Configure Options
-            const options = {
-                key: key, 
-                amount: orderData.amount,
-                currency: orderData.currency,
-                name: "GreenZaction",
-                description: "Add Funds",
+            await api.post('/payments/verify', {
                 order_id: orderData.order_id,
-                handler: async function (response) {
-                    try {
-                        const verifyRes = await api.post('/payments/verify', {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            category,
-                            subcategory: subcategory || null
-                        });
-                        alert('Payment successful');
-                        if (onSuccess) onSuccess(); // Refresh dashboard
-                    } catch (error) {
-                        console.error(error);
-                        alert("Payment verification failed");
-                    }
-                },
-                prefill: {
-                    name: user?.full_name || "GreenZaction User",
-                    email: user?.email || "user@example.com",
-                    contact: contact
-                },
-                theme: {
-                    color: "#10B981" // Green-500
-                },
-                config: {
-                    display: {
-                        blocks: {
-                            upi: {
-                                name: "Pay via UPI",
-                                instruments: [{ method: "upi" }]
-                            },
-                            other: {
-                                name: "Other Payment Modes",
-                                instruments: [
-                                    { method: "card" },
-                                    { method: "netbanking" }
-                                ]
-                            }
-                        },
-                        sequence: ["block.upi", "block.other"],
-                        preferences: {
-                            show_default_blocks: true
-                        }
-                    }
-                }
-            };
+                category,
+                subcategory: subcategory || null
+            });
 
-            const paymentObject = new window.Razorpay(options);
-            paymentObject.open();
+            alert('Payment successful');
+            if (onSuccess) onSuccess();
         } catch (error) {
             console.error("Payment Error: ", error);
-            alert("Something went wrong during payment initialization.");
+            alert("Something went wrong while processing the payment.");
         } finally {
             setLoading(false);
         }
@@ -266,7 +190,7 @@ const Payment = ({ onSuccess }) => {
                 <button
                     onClick={handlePayment}
                     disabled={loading}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
                 >
                     {loading ? (
                         <>
@@ -278,7 +202,7 @@ const Payment = ({ onSuccess }) => {
                     )}
                 </button>
                 <p className="text-xs text-center text-gray-500 mt-2">
-                    Secured by Razorpay
+                    Processed by GreenZaction Pay
                 </p>
             </div>
         </div>

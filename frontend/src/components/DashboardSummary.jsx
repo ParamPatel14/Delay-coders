@@ -6,8 +6,8 @@ const StatCard = ({ title, value, icon: Icon, color, subtext, offset, intense })
         {intense && (
             <div className="pointer-events-none absolute -inset-0.5 rounded-[22px] bg-[radial-gradient(circle_at_20%_0,rgba(16,185,129,0.55),transparent_55%),radial-gradient(circle_at_80%_120%,rgba(245,158,11,0.4),transparent_60%)] opacity-80 blur-2xl" />
         )}
-        <div className="relative rounded-[22px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(148,163,184,0.55),transparent_55%),radial-gradient(circle_at_100%_0,rgba(16,185,129,0.45),transparent_55%)]">
-            <div className="bg-[#030712]/90 backdrop-blur-xl overflow-hidden rounded-[20px] border border-white/10 shadow-[0_24px_80px_rgba(15,118,110,0.55)]">
+        <div className="relative rounded-[22px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.55),transparent_55%),radial-gradient(circle_at_100%_0,rgba(52,211,153,0.45),transparent_55%)]">
+            <div className="bg-white/90 backdrop-blur-xl overflow-hidden rounded-[20px] border border-emerald-100 shadow-sm">
                 <div className="px-5 pt-4 pb-5">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center">
@@ -16,10 +16,10 @@ const StatCard = ({ title, value, icon: Icon, color, subtext, offset, intense })
                             </div>
                             <div className="ml-4">
                                 <dl>
-                                    <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 truncate">{title}</dt>
+                                    <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-700 truncate">{title}</dt>
                                     <dd>
                                         <div
-                                            className="mt-1 text-xl font-semibold text-slate-50 leading-tight font-mono tracking-tight"
+                                            className="mt-1 text-xl font-semibold text-slate-900 leading-tight font-mono tracking-tight"
                                             style={{
                                                 fontFamily:
                                                     '"Space Mono","JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace'
@@ -27,7 +27,7 @@ const StatCard = ({ title, value, icon: Icon, color, subtext, offset, intense })
                                         >
                                             {value}
                                         </div>
-                                        {subtext && <p className="text-xs text-slate-400 mt-1.5 tracking-wide">{subtext}</p>}
+                                        {subtext && <p className="text-xs text-emerald-800 mt-1.5 tracking-wide">{subtext}</p>}
                                     </dd>
                                 </dl>
                             </div>

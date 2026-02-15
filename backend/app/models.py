@@ -60,7 +60,6 @@ class Transaction(Base):
     status = Column(String, default="pending") # pending, completed, failed
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Link to payment (optional, as some transactions might not be razorpay payments)
     payment_id = Column(Integer, ForeignKey("payments.id"), nullable=True)
     
     user = relationship("User", back_populates="transactions")
@@ -311,7 +310,6 @@ class MarketplaceOrder(Base):
     total_price = Column(Float)
     status = Column(String, default="PENDING")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    razorpay_payment_id = Column(String, nullable=True)
     tx_hash = Column(String, nullable=True)
 
 class MarketplaceTransaction(Base):
@@ -324,3 +322,31 @@ class MarketplaceTransaction(Base):
     total_price = Column(Float)
     blockchain_tx_hash = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UpiAccount(Base):
+    __tablename__ = "upi_accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True, index=True)
+    vpa = Column(String, unique=True, index=True)
+    display_name = Column(String, nullable=True)
+    is_merchant = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UpiPayment(Base):
+    __tablename__ = "upi_payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(String, unique=True, index=True)
+    upi_txn_id = Column(String, unique=True, index=True, nullable=True)
+    payer_vpa = Column(String, index=True)
+    payee_vpa = Column(String, index=True)
+    amount = Column(Integer)
+    currency = Column(String, default="INR")
+    note = Column(String, nullable=True)
+    status = Column(String, default="PENDING")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    payment_id = Column(Integer, ForeignKey("payments.id"), nullable=True)

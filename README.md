@@ -1,4 +1,21 @@
- # GreenZaction – Delay Coders Platform
+@router.post("/verify")
+def verify_payment(
+    payment_data: schemas.PaymentVerify,
+    db: Session = Depends(get_db),
+):
+    try:
+        transaction = payment_service.verify_and_process_payment(
+            db=db,
+            payload=payment_data,
+        )
+        return {"status": "ok", "transaction_id": transaction.id}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Transaction processing failed: {str(e)}",
+        ) # GreenZaction – Delay Coders Platform
  
  Monorepo for the **GreenZaction** sustainability platform, built by Delay Coders.  
  It combines:
@@ -14,7 +31,7 @@
  
  At the root:
  
- - `backend/` – FastAPI app (`GreenZaction API`) with PostgreSQL, Razorpay, and blockchain integration
+ - `backend/` – FastAPI app (`GreenZaction API`) with PostgreSQL, custom payments, and blockchain integration
  - `frontend/` – React + Vite single‑page app using Tailwind, React Router, and axios
  - `blockchain/` – Hardhat + ethers.js project for Polygon Amoy smart contracts
  
@@ -47,7 +64,7 @@
    - Carbon savings can be converted into on‑chain carbon credit tokens using configurable ratios (`CARBON_CREDIT_KG_PER_CREDIT`, etc.).
  
  - **Marketplace & Payments**  
-   - Razorpay integration via `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` for fiat payments.
+   - Custom in‑app payment flow (GreenZaction Pay) for fiat payments.
    - Marketplace APIs allow listing, pricing, and purchasing of eco‑related items or bundles.
  
  ### 2.2 Backend Features (FastAPI)
@@ -61,7 +78,7 @@
  - `dashboard` – aggregated user dashboard summary (recent activity, badges, leaderboard, etc.)
  - `wallet` / `tokens` / `blockchain` / `carbon-credits` – wallet integration and blockchain interactions
  - `companies` – company registration, authentication, and company‑level data
- - `marketplace` – marketplace listings and purchases (integrated with Razorpay)
+ - `marketplace` – marketplace listings and purchases (integrated with payments)
  - `admin` – admin‑only endpoints for managing entities and inspecting the system
  
  The app is configured via `app/config.py` using environment variables (see Setup below).
@@ -117,7 +134,6 @@
    - SQLAlchemy ORM with PostgreSQL (via `psycopg2-binary`)
    - JWT auth using `python-jose`
    - Pydantic + pydantic‑settings for config
-   - Razorpay Python SDK for payments
    - Web3.py + `eth-account` for blockchain calls
  
  - **Frontend**
@@ -144,7 +160,6 @@
  - PostgreSQL database
  - Optional but recommended:
    - Polygon Amoy RPC endpoint (Alchemy or similar)
-   - Razorpay test account and keys
    - MetaMask wallet for interacting with tokens
  
  ### 4.2 Backend Setup (`backend/`)
@@ -179,10 +194,7 @@
     
     GOOGLE_CLIENT_ID=your-google-client-id
     GOOGLE_CLIENT_SECRET=your-google-client-secret
-    GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
- 
-    RAZORPAY_KEY_ID=your-razorpay-test-key
-    RAZORPAY_KEY_SECRET=your-razorpay-test-secret
+   GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
  
     CHAIN_RPC_URL=https://polygon-amoy.g.alchemy.com/v2/your-key
     ECO_TOKEN_ADDRESS=0x...
@@ -196,7 +208,7 @@
     ```
  
     Notes:
-    - You can start without Razorpay and blockchain by leaving the related values as placeholders, but any endpoints that depend on them will fail until configured.
+    - You can start without blockchain by leaving the related values as placeholders, but any endpoints that depend on them will fail until configured.
  
  4. Ensure PostgreSQL is running and the `DATABASE_URL` points to a valid database.
  

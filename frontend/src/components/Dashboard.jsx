@@ -44,7 +44,7 @@ const Dashboard = () => {
     // Removed inline Payment card; payments moved to dedicated /pay page
 
     return (
-        <div className="min-h-screen bg-[#030303] text-slate-50 selection:bg-emerald-500/30 relative overflow-hidden">
+        <div className="min-h-screen bg-emerald-50 text-slate-900 selection:bg-emerald-200 relative overflow-hidden">
             <div
                 className="pointer-events-none fixed inset-0 opacity-60 mix-blend-soft-light"
                 style={{
@@ -52,7 +52,7 @@ const Dashboard = () => {
                         'radial-gradient(circle_at 20% 0, rgba(16,185,129,0.24), transparent 60%), radial-gradient(circle_at 80% 10%, rgba(245,158,11,0.18), transparent 55%), url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\' viewBox=\'0 0 160 160\'%3E%3Cfilter id=\'n\' x=\'0\' y=\'0\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'noStitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.3\'/%3E%3C/svg%3E")'
                 }}
             />
-            <nav className="relative border-b border-slate-800/80 bg-[#050505]/80 backdrop-blur-xl">
+            <nav className="relative border-b border-emerald-100 bg-white/80 backdrop-blur-xl">
                 <div className="max-w-7xl mx-auto px-4 sm:px-7 lg:px-9">
                     <div className="flex justify-between h-16">
                         <div className="flex items-center gap-3">
@@ -67,33 +67,33 @@ const Dashboard = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                            <div className="flex items-center text-xs sm:text-sm font-medium text-slate-200 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-700 shadow-[0_8px_22px_rgba(15,23,42,0.45)]">
-                                <User className="h-3.5 w-3.5 mr-2 text-emerald-400" />
+                            <div className="flex items-center text-xs sm:text-sm font-medium text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 shadow-sm">
+                                <User className="h-3.5 w-3.5 mr-2 text-emerald-500" />
                                 <span className="truncate max-w-[180px]">{user?.full_name || user?.email}</span>
                             </div>
                             <button
                                 onClick={() => navigate(company ? '/company/panel' : '/company/login')}
-                                className="hidden md:inline-flex items-center px-3 py-2 border border-slate-700 text-xs font-medium rounded-lg text-slate-100 bg-slate-900 hover:bg-slate-800 shadow-sm"
+                                className="hidden md:inline-flex items-center px-3 py-2 border border-emerald-100 text-xs font-medium rounded-lg text-emerald-900 bg-white hover:bg-emerald-50 shadow-sm"
                             >
                                 <Building2 className="h-3.5 w-3.5 mr-2 text-emerald-400" />
                                 Company
                             </button>
                             <button
                                 onClick={() => navigate('/pay')}
-                                className="inline-flex items-center px-3.5 py-2 border border-emerald-500/60 text-xs font-semibold rounded-[20px] text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/15 shadow-[0_14px_40px_rgba(16,185,129,0.45)]"
+                                className="inline-flex items-center px-3.5 py-2 border border-emerald-500/60 text-xs font-semibold rounded-[20px] text-white bg-emerald-500 hover:bg-emerald-600 shadow-sm"
                             >
                                 Payments
                             </button>
                             <button
                                 onClick={() => navigate(admin ? '/admin/panel' : '/admin/login')}
-                                className="hidden lg:inline-flex items-center px-3 py-2 border border-slate-700 text-xs font-medium rounded-lg text-slate-100 bg-slate-900 hover:bg-slate-800 shadow-sm"
+                                className="hidden lg:inline-flex items-center px-3 py-2 border border-emerald-100 text-xs font-medium rounded-lg text-emerald-900 bg-white hover:bg-emerald-50 shadow-sm"
                             >
                                 <Shield className="h-3.5 w-3.5 mr-2 text-emerald-400" />
                                 Admin
                             </button>
                             <button
                                 onClick={handleLogout}
-                                className="inline-flex items-center px-3 py-2 text-xs font-semibold rounded-lg text-slate-900 bg-amber-400 hover:bg-amber-500 shadow-[0_10px_30px_rgba(245,158,11,0.45)]"
+                                className="inline-flex items-center px-3 py-2 text-xs font-semibold rounded-lg text-white bg-amber-400 hover:bg-amber-500 shadow-sm"
                             >
                                 <LogOut className="h-3.5 w-3.5 mr-2" />
                                 Logout
@@ -106,23 +106,23 @@ const Dashboard = () => {
             <main className="relative max-w-7xl mx-auto py-9 px-4 sm:px-7 lg:px-9">
                 <div className="mb-7">
                     <div className="flex items-baseline justify-between gap-3">
-                        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-50">Portfolio Overview</h2>
-                        <p className="text-xs text-slate-400 tracking-wide">Live sync from your eco-payments activity</p>
+                        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Portfolio Overview</h2>
+                        <p className="text-xs text-emerald-800 tracking-wide">Live sync from your eco-payments activity</p>
                     </div>
                     <div className="mt-4">
                         {loading || !summary ? (
-                            <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.35),transparent_55%),radial-gradient(circle_at_100%_0,rgba(56,189,248,0.18),transparent_55%)]">
-                                <div className="bg-[#050505]/85 backdrop-blur-xl rounded-[24px] border border-white/10 shadow-[0_24px_80px_rgba(16,185,129,0.45)]">
+                            <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.35),transparent_55%),radial-gradient(circle_at_100%_0,rgba(52,211,153,0.18),transparent_55%)]">
+                                <div className="bg-white backdrop-blur-xl rounded-[24px] border border-emerald-100 shadow-sm">
                                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 px-5 pt-5 pb-6">
-                                        <div className="h-32 rounded-2xl bg-slate-900/80 border border-slate-800 animate-pulse" />
-                                        <div className="h-32 rounded-[20px] bg-slate-900/80 border border-slate-800 animate-pulse" />
-                                        <div className="h-32 rounded-2xl bg-slate-900/80 border border-slate-800 animate-pulse" />
+                                        <div className="h-32 rounded-2xl bg-emerald-50 border border-emerald-100 animate-pulse" />
+                                        <div className="h-32 rounded-[20px] bg-emerald-50 border border-emerald-100 animate-pulse" />
+                                        <div className="h-32 rounded-2xl bg-emerald-50 border border-emerald-100 animate-pulse" />
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.38),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(245,158,11,0.32),transparent_60%)] shadow-[0_40px_120px_rgba(16,185,129,0.35)]">
-                                <div className="bg-[#050505]/85 backdrop-blur-xl rounded-[24px] border border-white/10 shadow-[0_24px_80px_rgba(15,118,110,0.65)]">
+                            <div className="relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.18),transparent_58%),radial-gradient(circle_at_120%_-10%,rgba(245,158,11,0.22),transparent_60%)] shadow-sm">
+                                <div className="bg-white backdrop-blur-xl rounded-[24px] border border-emerald-100 shadow-sm">
                                     <ErrorBoundary>
                                         <DashboardSummary summary={summary} />
                                     </ErrorBoundary>

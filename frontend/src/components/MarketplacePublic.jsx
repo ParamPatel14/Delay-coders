@@ -40,7 +40,7 @@ const MarketplacePublic = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#030303] text-slate-50 relative overflow-hidden">
+    <div className="min-h-screen bg-emerald-50 text-slate-900 relative overflow-hidden">
       <div
         className="pointer-events-none fixed inset-0 opacity-60 mix-blend-soft-light"
         style={{
@@ -49,20 +49,20 @@ const MarketplacePublic = () => {
         }}
       />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-7 lg:px-9 py-9">
-        <div className="relative rounded-[28px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(16,185,129,0.45),transparent_60%),radial-gradient(circle_at_120%_-10%,rgba(56,189,248,0.42),transparent_60%)] shadow-[0_40px_120px_rgba(16,185,129,0.42)] mb-8">
-          <div className="bg-[#050505]/85 rounded-[26px] border border-white/10 px-6 sm:px-8 py-6 sm:py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 backdrop-blur-xl">
+        <div className="relative rounded-[28px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.45),transparent_60%),radial-gradient(circle_at_120%_-10%,rgba(52,211,153,0.42),transparent_60%)] shadow-sm mb-8">
+          <div className="bg-white rounded-[26px] border border-emerald-100 px-6 sm:px-8 py-6 sm:py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 backdrop-blur-xl">
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">Discover</div>
-              <div className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-50">
+              <div className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                 Carbon Credit Marketplace
               </div>
-              <div className="mt-2 text-xs sm:text-sm text-slate-400">
+              <div className="mt-2 text-xs sm:text-sm text-emerald-800">
                 Browse live carbon credit projects and indicative market pricing.
               </div>
             </div>
             <button
               onClick={() => navigate('/company/login')}
-              className="relative px-4 py-2.5 rounded-[9999px] bg-emerald-500/15 text-emerald-100 text-sm font-semibold shadow-[0_0_26px_rgba(16,185,129,0.65)] border border-emerald-400/70 overflow-hidden hover:bg-emerald-400/25"
+              className="relative px-4 py-2.5 rounded-[9999px] bg-emerald-500 text-white text-sm font-semibold shadow-sm border border-emerald-500 overflow-hidden hover:bg-emerald-600"
             >
               <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.6),transparent_55%)] opacity-60 mix-blend-screen" />
               <span className="relative text-slate-950">Company Login</span>
@@ -71,9 +71,9 @@ const MarketplacePublic = () => {
         </div>
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-            <div className="h-24 rounded-2xl bg-slate-900/80 border border-slate-800" />
-            <div className="h-24 rounded-2xl bg-slate-900/80 border border-slate-800" />
-            <div className="h-24 rounded-2xl bg-slate-900/80 border border-slate-800" />
+            <div className="h-24 rounded-2xl bg-white border border-emerald-100" />
+            <div className="h-24 rounded-2xl bg-white border border-emerald-100" />
+            <div className="h-24 rounded-2xl bg-white border border-emerald-100" />
           </div>
         ) : (
           <>
@@ -82,21 +82,21 @@ const MarketplacePublic = () => {
               <Stat title="Credits Available" value={stats?.total_available_credits ?? 0} icon={Coins} />
               <Stat title="Avg Price/Credit (₹)" value={stats?.avg_price_per_credit?.toFixed ? stats.avg_price_per_credit.toFixed(0) : stats?.avg_price_per_credit ?? 0} icon={BarChart3} />
             </div>
-            <div className="mt-8 relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(148,163,184,0.55),transparent_58%),radial-gradient(circle_at_120%_0,rgba(16,185,129,0.45),transparent_60%)] shadow-[0_32px_100px_rgba(16,185,129,0.36)]">
-              <div className="bg-[#050505]/88 rounded-[24px] border border-white/10 px-5 pt-5 pb-6 backdrop-blur-xl">
+            <div className="mt-8 relative rounded-[26px] p-[1px] bg-[radial-gradient(circle_at_0_0,rgba(190,242,100,0.55),transparent_58%),radial-gradient(circle_at_120%_0,rgba(52,211,153,0.45),transparent_60%)] shadow-sm">
+              <div className="bg-white rounded-[24px] border border-emerald-100 px-5 pt-5 pb-6 backdrop-blur-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <h2 className="text-base sm:text-lg font-semibold text-slate-50">Marketplace Listings</h2>
+                  <h2 className="text-base sm:text-lg font-semibold text-slate-900">Marketplace Listings</h2>
                   <div className="flex items-center justify-between sm:justify-end gap-3">
-                    <div className="hidden md:flex items-center text-xs text-slate-400">
+                    <div className="hidden md:flex items-center text-xs text-emerald-800">
                       <Info className="h-4 w-4 mr-1 text-emerald-300/80" />
                       Login to Company Portal to purchase
                     </div>
-                    <div className="flex items-center rounded-[9999px] border border-slate-700 bg-slate-950/70 px-3 py-1.5 text-xs text-slate-300">
-                      <Filter className="h-4 w-4 mr-2 text-slate-400" />
+                    <div className="flex items-center rounded-[9999px] border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-900">
+                      <Filter className="h-4 w-4 mr-2 text-emerald-500" />
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-transparent outline-none text-xs text-slate-200"
+                        className="bg-transparent outline-none text-xs text-emerald-900"
                       >
                         <option value="recent">Recent</option>
                         <option value="price_asc">Price Low → High</option>
@@ -117,26 +117,26 @@ const MarketplacePublic = () => {
                     .map((l) => (
                       <div
                         key={l.id}
-                        className="border border-white/10 rounded-[20px] p-4 bg-slate-950/70 hover:bg-slate-900/90 hover:shadow-[0_0_26px_rgba(16,185,129,0.7)] transition-all backdrop-blur-lg"
+                        className="border border-emerald-100 rounded-[20px] p-4 bg-white hover:bg-emerald-50 hover:shadow-sm transition-all backdrop-blur-lg"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold text-slate-50">Listing #{l.id}</div>
-                          <div className="text-[11px] px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-400/60">
+                          <div className="text-sm font-semibold text-slate-900">Listing #{l.id}</div>
+                          <div className="text-[11px] px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                             Available
                           </div>
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:text-sm">
-                          <div className="text-slate-400">Credits</div>
-                          <div className="text-slate-50 font-medium">{l.credit_amount}</div>
-                          <div className="text-slate-400">Price/Credit</div>
-                          <div className="text-slate-50 font-medium">{nfINR.format(l.price_per_credit)}</div>
-                          <div className="text-slate-400">Seller</div>
-                          <div className="text-slate-50 font-medium">User #{l.seller_user_id}</div>
+                          <div className="text-slate-500">Credits</div>
+                          <div className="text-slate-900 font-medium">{l.credit_amount}</div>
+                          <div className="text-slate-500">Price/Credit</div>
+                          <div className="text-slate-900 font-medium">{nfINR.format(l.price_per_credit)}</div>
+                          <div className="text-slate-500">Seller</div>
+                          <div className="text-slate-900 font-medium">User #{l.seller_user_id}</div>
                         </div>
                         <div className="mt-3 flex justify-end">
                           <button
                             onClick={() => navigate('/company/login')}
-                            className="relative px-3.5 py-2 text-xs sm:text-sm rounded-[9999px] bg-emerald-500/20 text-emerald-100 font-semibold flex items-center border border-emerald-400/70 shadow-[0_0_22px_rgba(16,185,129,0.6)] hover:bg-emerald-400/30"
+                            className="relative px-3.5 py-2 text-xs sm:text-sm rounded-[9999px] bg-emerald-500 text-white font-semibold flex items-center border border-emerald-500 shadow-sm hover:bg-emerald-600"
                           >
                             <span className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.55),transparent_55%)] opacity-60 mix-blend-screen" />
                             <span className="relative flex items-center">
@@ -148,7 +148,7 @@ const MarketplacePublic = () => {
                       </div>
                     ))}
                   {listings.length === 0 && (
-                    <div className="text-sm text-slate-400 col-span-full py-6">No listings available yet.</div>
+                    <div className="text-sm text-emerald-800 col-span-full py-6">No listings available yet.</div>
                   )}
                 </div>
               </div>
