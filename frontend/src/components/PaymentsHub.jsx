@@ -2,6 +2,9 @@ import React, { useMemo, useState } from 'react';
 import api from '../api/axios';
 import { CreditCard, ScanLine, Users, Phone, Tv, Banknote, Home, ShieldCheck, HandCoins, GraduationCap, ShoppingCart, Car, Plane, Package, Flame, Battery } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -277,13 +280,13 @@ const PaymentsHub = () => {
         </div>
       </header>
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
           {tiles.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               type="button"
-              className={`flex flex-col items-center justify-center p-4 rounded-lg border shadow-sm hover:shadow transition ${selected === key ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-white'}`}
+              className={`flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition ${selected === key ? 'ring-1 ring-green-500' : ''}`}
               onClick={() => pickTile(tiles.find(t => t.key === key))}
             >
               <Icon className="h-6 w-6 text-green-600 mb-2" />
@@ -292,8 +295,11 @@ const PaymentsHub = () => {
           ))}
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h3 className="text-md font-medium text-gray-900 mb-4">Details</h3>
+        <Card>
+          <CardHeader>
+            <CardTitle>Details</CardTitle>
+          </CardHeader>
+          <CardContent>
 
           {category === 'Shopping' && (
             <div className="mb-4">
@@ -303,7 +309,7 @@ const PaymentsHub = () => {
                   <button
                     key={opt}
                     type="button"
-                    className={`px-3 py-2 rounded-md border text-sm ${subcategory === opt ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+                    className={`px-3 py-2 rounded-xl border text-sm ${subcategory === opt ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
                     onClick={() => {
                       setSubcategory(opt);
                       const presets = presetMap.Shopping[opt];
@@ -324,7 +330,7 @@ const PaymentsHub = () => {
               <span className="text-sm text-gray-700">Sustainable option</span>
               <button
                 type="button"
-                className={`px-3 py-1 rounded-full border text-xs ${sustainable ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+                className={`px-3 py-1 rounded-full border text-xs ${sustainable ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
                 onClick={() => setSustainable(!sustainable)}
               >
                 {sustainable ? 'Enabled' : 'Enable'}
@@ -336,10 +342,9 @@ const PaymentsHub = () => {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Select Provider</span>
-                <input
+                <Input
                   type="text"
                   placeholder="Search providers"
-                  className="border rounded-md px-2 py-1 text-sm"
                   value={providerSearch}
                   onChange={(e) => setProviderSearch(e.target.value)}
                 />
@@ -349,7 +354,7 @@ const PaymentsHub = () => {
                   <button
                     key={p}
                     type="button"
-                    className={`px-3 py-2 rounded-md border text-sm text-left ${provider === p ? 'border-green-600 text-green-700 bg-green-50' : 'border-gray-300 text-gray-700 bg-white'}`}
+                    className={`px-3 py-2 rounded-xl border text-sm text-left ${provider === p ? 'ring-1 ring-green-500' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-900'}`}
                     onClick={() => {
                       setProvider(p);
                       setStep('details');
@@ -365,7 +370,7 @@ const PaymentsHub = () => {
           {provider && (
             <div className="mb-4">
               <div className="text-sm text-gray-600 mb-1">Provider</div>
-              <div className="flex items-center justify-between bg-gray-50 border rounded-md px-3 py-2">
+              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                 <span className="text-sm font-medium text-gray-900">{provider}</span>
                 <button
                   type="button"
@@ -382,7 +387,7 @@ const PaymentsHub = () => {
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">UPI QR Code Text</label>
               <textarea
-                className="border rounded-md w-full px-3 py-2 text-sm h-24"
+                className="border border-gray-200 rounded-xl w-full px-3 py-2 text-sm h-24 bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="upi://pay?pa=merchant@upi&pn=Merchant&am=500&cu=INR"
                 value={upiQrText}
                 onChange={(e) => {
@@ -396,9 +401,8 @@ const PaymentsHub = () => {
           {selected === 'upi_id' && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">UPI ID</label>
-              <input
+              <Input
                 type="text"
-                className="border rounded-md w-full px-3 py-2 text-sm"
                 placeholder="example@bank"
                 value={upiId}
                 onChange={(e) => {
@@ -418,11 +422,11 @@ const PaymentsHub = () => {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Consumer Number</label>
-                    <input className="border rounded-md w-full px-3 py-2 text-sm" placeholder="e.g., 1234567890" />
+                    <Input className="w-full" placeholder="e.g., 1234567890" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Billing Unit</label>
-                    <input className="border rounded-md w-full px-3 py-2 text-sm" placeholder="e.g., 4402" />
+                    <Input className="w-full" placeholder="e.g., 4402" />
                   </div>
                 </>
               )}
@@ -430,11 +434,11 @@ const PaymentsHub = () => {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Connection ID</label>
-                    <input className="border rounded-md w-full px-3 py-2 text-sm" placeholder="e.g., 9876543210" />
+                    <Input className="w-full" placeholder="e.g., 9876543210" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Registered Mobile</label>
-                    <input className="border rounded-md w-full px-3 py-2 text-sm" placeholder="e.g., 9999999999" />
+                    <Input className="w-full" placeholder="e.g., 9999999999" />
                   </div>
                 </>
               )}
@@ -443,7 +447,7 @@ const PaymentsHub = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Travel Mode</label>
                     <select
-                      className="border rounded-md w-full px-3 py-2 text-sm"
+                      className="border border-gray-200 rounded-xl w-full px-3 py-2 text-sm bg-white text-gray-900"
                       value={subcategory}
                       onChange={(e) => setSubcategory(e.target.value)}
                     >
@@ -456,7 +460,7 @@ const PaymentsHub = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">PNR/Booking ID</label>
-                    <input className="border rounded-md w-full px-3 py-2 text-sm" placeholder="e.g., ABC1234567" />
+                    <Input className="w-full" placeholder="e.g., ABC1234567" />
                   </div>
                 </>
               )}
@@ -464,12 +468,12 @@ const PaymentsHub = () => {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
-                    <input className="border rounded-md w-full px-3 py-2 text-sm" placeholder="e.g., ORD-001234" />
+                    <Input className="w-full" placeholder="e.g., ORD-001234" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Merchant</label>
                     <select
-                      className="border rounded-md w-full px-3 py-2 text-sm"
+                      className="border border-gray-200 rounded-xl w-full px-3 py-2 text-sm bg-white text-gray-900"
                       value={provider}
                       onChange={(e) => setProvider(e.target.value)}
                     >
@@ -488,14 +492,14 @@ const PaymentsHub = () => {
 
           <div className="mb-4">
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Amount (INR)</label>
-            <div className="relative rounded-md shadow-sm">
+            <div className="relative rounded-xl">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <span className="text-gray-500 sm:text-sm">₹</span>
               </div>
-              <input
+              <Input
                 type="number"
                 id="amount"
-                className="focus:ring-green-500 focus:border-green-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md py-2 border"
+                className="block w-full pl-7 pr-12"
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
@@ -505,25 +509,25 @@ const PaymentsHub = () => {
 
           <div className="mb-4">
             <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <input
+            <Input
               type="tel"
               id="contact"
-              className="focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
               placeholder="9999999999"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
             />
           </div>
 
-          <button
+          <Button
             onClick={payNow}
             disabled={loading || !category}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
+            className="w-full flex justify-center disabled:opacity-50"
           >
             {loading ? 'Processing...' : 'Pay Now'}
-          </button>
+          </Button>
           <p className="text-xs text-center text-gray-500 mt-2">Secured by Razorpay</p>
-        </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
