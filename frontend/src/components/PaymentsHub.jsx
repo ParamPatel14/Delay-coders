@@ -98,6 +98,8 @@ const PaymentsHub = () => {
   const [transferAmount, setTransferAmount] = useState('');
   const [transferLoading, setTransferLoading] = useState(false);
   const [transferMessage, setTransferMessage] = useState('');
+  const [insightLoadingId, setInsightLoadingId] = useState(null);
+  const [txInsights, setTxInsights] = useState({});
 
   useEffect(() => {
     let cancelled = false;
@@ -178,6 +180,26 @@ const PaymentsHub = () => {
       setTransferMessage('Transfer failed');
     } finally {
       setTransferLoading(false);
+    }
+  };
+
+  const fetchInsight = async (txId) => {
+    if (!txId) return;
+    setInsightLoadingId(txId);
+    try {
+      const { data } = await api.get(`/upi/insights/${txId}`);
+      const insight = data && data.insight ? data.insight : '';
+      setTxInsights((prev) => ({
+        ...prev,
+        [txId]: insight
+      }));
+    } catch (e) {
+      setTxInsights((prev) => ({
+        ...prev,
+        [txId]: 'Unable to load insight right now.'
+      }));
+    } finally {
+      setInsightLoadingId(null);
     }
   };
 
@@ -806,7 +828,7 @@ const PaymentsHub = () => {
                         key={t.transaction_id}
                         className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white px-3 py-2"
                       >
-                        <div>
+                        <div className="flex-1 pr-3">
                           <div className="flex items-center gap-2">
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full ${
@@ -820,6 +842,11 @@ const PaymentsHub = () => {
                           <div className="text-[11px] text-slate-400 mt-1">
                             {t.created_at ? new Date(t.created_at).toLocaleString() : ''}
                           </div>
+                          {txInsights[t.transaction_id] && (
+                            <div className="mt-1 text-[11px] text-slate-500 max-w-xs">
+                              {txInsights[t.transaction_id]}
+                            </div>
+                          )}
                         </div>
                         <div className="text-right">
                           <div
@@ -840,6 +867,14 @@ const PaymentsHub = () => {
                           >
                             {t.status}
                           </div>
+                          <button
+                            type="button"
+                            className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+                            disabled={insightLoadingId === t.transaction_id}
+                            onClick={() => fetchInsight(t.transaction_id)}
+                          >
+                            {insightLoadingId === t.transaction_id ? 'Analyzing...' : 'AI Insight'}
+                          </button>
                         </div>
                       </div>
                     );

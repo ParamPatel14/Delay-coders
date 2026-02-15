@@ -1,24 +1,7 @@
-@router.post("/verify")
-def verify_payment(
-    payment_data: schemas.PaymentVerify,
-    db: Session = Depends(get_db),
-):
-    try:
-        transaction = payment_service.verify_and_process_payment(
-            db=db,
-            payload=payment_data,
-        )
-        return {"status": "ok", "transaction_id": transaction.id}
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Transaction processing failed: {str(e)}",
-        ) # GreenZaction – Delay Coders Platform
- 
- Monorepo for the **GreenZaction** sustainability platform, built by Delay Coders.  
- It combines:
+# GreenZaction – Delay Coders Platform
+
+Monorepo for the **GreenZaction** sustainability platform, built by Delay Coders.  
+It combines:
  - A FastAPI backend for carbon tracking, eco‑points, gamification, payments, and company admin
  - A React + Vite frontend for users, companies, and admins
  - A Hardhat blockchain workspace for Polygon Amoy smart contracts (eco tokens, badges, carbon credits)
@@ -63,23 +46,24 @@ def verify_payment(
    - Backend uses Web3 via `CHAIN_RPC_URL`, `ECO_TOKEN_ADDRESS`, `CARBON_CREDIT_TOKEN_ADDRESS` to mint tokens and query balances.
    - Carbon savings can be converted into on‑chain carbon credit tokens using configurable ratios (`CARBON_CREDIT_KG_PER_CREDIT`, etc.).
  
- - **Marketplace & Payments**  
-   - Custom in‑app payment flow (GreenZaction Pay) for fiat payments.
-   - Marketplace APIs allow listing, pricing, and purchasing of eco‑related items or bundles.
+- **Marketplace & Payments**  
+  - Custom in‑app payment flow (GreenZaction Pay) for fiat payments, including UPI‑style wallets and QR flows.
+  - Marketplace APIs allow listing, pricing, and purchasing of eco‑related items or bundles.
  
  ### 2.2 Backend Features (FastAPI)
  
- The backend exposes REST APIs, grouped by routers:
- - `auth` – user authentication (email/password + optional Google OAuth)
- - `transactions` – record transactions and derive carbon impact + points
- - `emissions` / `carbon` – emission factors and carbon calculations
- - `eco-points` – earn, track, and convert eco‑points
- - `achievements` / `gamification` – badges, challenges, levels, streaks
- - `dashboard` – aggregated user dashboard summary (recent activity, badges, leaderboard, etc.)
- - `wallet` / `tokens` / `blockchain` / `carbon-credits` – wallet integration and blockchain interactions
- - `companies` – company registration, authentication, and company‑level data
- - `marketplace` – marketplace listings and purchases (integrated with payments)
- - `admin` – admin‑only endpoints for managing entities and inspecting the system
+The backend exposes REST APIs, grouped by routers:
+- `auth` – user authentication (email/password + optional Google OAuth)
+- `transactions` – record transactions and derive carbon impact + points
+- `emissions` / `carbon` – emission factors and carbon calculations
+- `eco-points` – earn, track, and convert eco‑points
+- `achievements` / `gamification` – badges, challenges, levels, streaks
+- `dashboard` – aggregated user dashboard summary (recent activity, badges, leaderboard, etc.)
+- `wallet` / `wallets` / `tokens` / `blockchain` / `carbon-credits` – wallet integration, UPI wallets, and blockchain interactions
+- `companies` – company registration, authentication, and company‑level data
+- `marketplace` – marketplace listings and purchases (integrated with payments)
+- `admin` – admin‑only endpoints for managing entities and inspecting the system
+- `merchant-orders` / `upi` – merchant QR order generation, UPI pay, scan‑and‑pay, and UPI history
  
  The app is configured via `app/config.py` using environment variables (see Setup below).
  
@@ -111,23 +95,37 @@ def verify_payment(
  
  UI is styled primarily via Tailwind utility classes and small reusable UI primitives under `src/ui/`.
  
- ### 2.4 Blockchain Workspace (Hardhat)
- 
- The `blockchain/` folder contains:
- - Solidity contracts:
-   - `EcoToken.sol` – ERC‑20‑like token for eco points on‑chain
-   - `EcoBadge.sol` – NFT/badge contract
-   - `CarbonCreditToken.sol` – token representing carbon credits
- - Hardhat scripts under `scripts/` for:
-   - Deploying contracts (`deploy.ts`, `deploy_cct.ts`, etc.)
-   - Minting tokens (`mint_token.ts`, `mint_cct.ts`)
-   - Checking balances (`balance.ts`)
- 
- The backend reads from `blockchain/deployments/*.json` (e.g. `eco_token_polygon.json`) or environment variables to discover on‑chain addresses.
- 
- ---
- 
- ## 3. Technology Stack
+### 2.4 Blockchain Workspace (Hardhat)
+
+The `blockchain/` folder contains:
+- Solidity contracts:
+  - `EcoToken.sol` – ERC‑20‑like token for eco points on‑chain
+  - `EcoBadge.sol` – NFT/badge contract
+  - `CarbonCreditToken.sol` – token representing carbon credits
+- Hardhat scripts under `scripts/` for:
+  - Deploying contracts (`deploy.ts`, `deploy_cct.ts`, etc.)
+  - Minting tokens (`mint_token.ts`, `mint_cct.ts`)
+  - Checking balances (`balance.ts`)
+
+The backend reads from `blockchain/deployments/*.json` (e.g. `eco_token_polygon.json`) or environment variables to discover on‑chain addresses.
+
+### 2.5 Merchant UPI QR Flow (High Level)
+
+The platform includes a merchant‑style UPI wallet flow:
+- Merchants create QR‑coded orders via `POST /merchant/orders/generate-qr`. The QR payload contains the merchant UPI ID, merchant ID, order ID, amount, and optional item list. A `MerchantOrder` row is created or updated.
+- Users pay either by entering UPI IDs directly (`POST /upi/pay`) or by scanning the merchant QR (`POST /upi/scan-and-pay`). Both paths move balance between UPI wallets and mark the merchant order as paid when applicable.
+- Every successful UPI QR payment (`/upi/scan-and-pay`) also:
+  - Creates a core `Transaction` entry
+  - Calculates and records carbon impact
+  - Awards eco‑points and applies reward rules and badges
+  - Can auto‑convert eco‑points to on‑chain tokens when thresholds and blockchain configuration are set
+- UPI transaction history is available via:
+  - `GET /upi/transactions/user` – history for the current user’s UPI VPA
+  - `GET /upi/transactions/merchant` – history for the default merchant UPI account
+
+---
+
+## 3. Technology Stack
  
  - **Backend**
    - Python, FastAPI

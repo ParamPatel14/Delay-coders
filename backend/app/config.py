@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     CARBON_CREDIT_KG_PER_CREDIT: float = 1000.0
     CARBON_CREDIT_TOKEN_ADDRESS: Optional[str] = None
     CARBON_CREDIT_OWNER_PRIVATE_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-1.5-flash"
 
     class Config:
         env_file = ".env"

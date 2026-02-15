@@ -16,6 +16,7 @@ from ..services import (
     eco_points,
     reward_rules,
     badges,
+    gemini_upi_insights_service,
 )
 
 
@@ -325,3 +326,32 @@ def get_merchant_upi_transactions(token: str, db: Session = Depends(get_db)):
         for r in rows
     ]
 
+
+@upi_router.get("/insights/{transaction_id}")
+def get_upi_transaction_insight(
+    transaction_id: str,
+    current_user: models.User = Depends(dependencies.get_current_user),
+    db: Session = Depends(get_db),
+):
+    upi_account = upi_service.get_or_create_user_upi(db, current_user)
+    upi_tx = (
+        db.query(models.UpiTransaction)
+        .filter(models.UpiTransaction.transaction_id == transaction_id)
+        .first()
+    )
+    if not upi_tx:
+        raise HTTPException(status_code=404, detail="UPI transaction not found")
+    if (
+        upi_tx.sender_upi_id != upi_account.vpa
+        and upi_tx.receiver_upi_id != upi_account.vpa
+    ):
+        raise HTTPException(status_code=403, detail="Not allowed to view this transaction")
+    insight = gemini_upi_insights_service.analyze_transaction(
+        db=db,
+        transaction_id=transaction_id,
+        user_id=current_user.id,
+    )
+    return {
+        "transaction_id": transaction_id,
+        "insight": insight,
+    }
