@@ -1,51 +1,57 @@
-# GreenZaction – Delay Coders Platform
+# GreenZaction – Delay Coders Sustainability Platform
 
-Monorepo for the **GreenZaction** sustainability platform, built by Delay Coders.  
-It combines:
- - A FastAPI backend for carbon tracking, eco‑points, gamification, payments, and company admin
- - A React + Vite frontend for users, companies, and admins
- - A Hardhat blockchain workspace for Polygon Amoy smart contracts (eco tokens, badges, carbon credits)
- 
- This README describes what the system does and how to set it up end‑to‑end.
- 
- ---
- 
- ## 1. Project Structure
- 
- At the root:
- 
- - `backend/` – FastAPI app (`GreenZaction API`) with PostgreSQL, custom payments, and blockchain integration
- - `frontend/` – React + Vite single‑page app using Tailwind, React Router, and axios
- - `blockchain/` – Hardhat + ethers.js project for Polygon Amoy smart contracts
- 
- High‑level roles and flows:
- - **End‑users** – earn eco‑points by recording low‑carbon activities and transactions, then convert to on‑chain eco tokens and carbon credits.
- - **Companies** – manage their own dashboard, view aggregated impact, and interact via company portal.
- - **Admins** – manage users, companies, and marketplace listings from an admin panel.
- 
- ---
- 
- ## 2. What the Platform Does
- 
- ### 2.1 Core Concepts
- 
- - **Eco Points**  
-   Users earn eco‑points for eco‑friendly activities and transactions. Points are tracked in the backend (`EcoPointsTransaction` etc.) and power:
-   - User levels (Beginner → higher tiers)
-   - Badges and challenges
-   - Conversion to on‑chain tokens
- 
- - **Gamification**  
-   The backend awards:
-   - **Badges** – e.g. first transaction, eco saver, carbon champion
-   - **Challenges** – progressive goals with rewards
-   - **Streaks and levels** – maintained by gamification services
- 
- - **Eco Tokens & Carbon Credits (Blockchain)**  
-   - ERC‑20‑style tokens (`EcoToken`, `CarbonCreditToken`) and badges (`EcoBadge`) on Polygon Amoy.
-   - Backend uses Web3 via `CHAIN_RPC_URL`, `ECO_TOKEN_ADDRESS`, `CARBON_CREDIT_TOKEN_ADDRESS` to mint tokens and query balances.
-   - Carbon savings can be converted into on‑chain carbon credit tokens using configurable ratios (`CARBON_CREDIT_KG_PER_CREDIT`, etc.).
- 
+GreenZaction is an end‑to‑end sustainability platform built by **Delay Coders**.  
+It connects everyday payments, carbon tracking, rewards, and blockchain into one experience for:
+
+- Users who want to see their climate impact and earn eco‑rewards
+- Merchants who want a green‑aware payments and QR experience
+- Admins and companies who need dashboards and controls
+
+This repository is a monorepo containing:
+
+- A **FastAPI** backend for carbon tracking, eco‑points, gamification, payments, wallets, and company/admin APIs
+- A **React + Vite** frontend for user, merchant, and admin portals
+- A **Hardhat** blockchain workspace for Polygon Amoy smart contracts (eco tokens, badges, carbon credits)
+
+---
+
+## 1. Project Structure
+
+At the root:
+
+- `backend/` – FastAPI app (`GreenZaction API`) with PostgreSQL, custom payments, wallets, and blockchain integration
+- `frontend/` – React single‑page app using Vite, Tailwind, React Router, and axios
+- `blockchain/` – Hardhat + ethers.js project for Polygon Amoy smart contracts
+
+High‑level roles and flows:
+
+- **End‑users** – earn eco‑points by recording low‑carbon activities and transactions, then convert to on‑chain eco tokens and carbon credits.
+- **Companies / Merchants** – manage their own dashboard, generate merchant QRs, view aggregated impact, and accept UPI‑style payments.
+- **Admins** – manage users, companies, marketplace listings, and inspect overall system health from an admin panel.
+
+---
+
+## 2. What the Platform Does
+
+### 2.1 Core Concepts
+
+- **Eco Points**  
+  Users earn eco‑points for eco‑friendly activities and transactions. Points are tracked in the backend (`EcoPointsTransaction`, `EcoPointsBalance`) and power:
+  - User levels (Beginner and higher tiers)
+  - Badges and challenges
+  - Conversion to on‑chain tokens
+
+- **Gamification**  
+  The backend awards:
+  - **Badges** – e.g. first transaction, eco saver, carbon champion
+  - **Challenges** – progressive goals with rewards
+  - **Streaks and levels** – maintained by gamification services
+
+- **Eco Tokens & Carbon Credits (Blockchain)**  
+  - ERC‑20‑style tokens (`EcoToken`, `CarbonCreditToken`) and badges (`EcoBadge`) on Polygon Amoy.
+  - Backend uses Web3 via `CHAIN_RPC_URL`, `ECO_TOKEN_ADDRESS`, `CARBON_CREDIT_TOKEN_ADDRESS` to mint tokens and query balances.
+  - Carbon savings can be converted into on‑chain carbon credit tokens using configurable ratios (`CARBON_CREDIT_KG_PER_CREDIT`, etc.).
+
 - **Marketplace & Payments**  
   - Custom in‑app payment flow (GreenZaction Pay) for fiat payments, including UPI‑style wallets and QR flows.
   - Marketplace APIs allow listing, pricing, and purchasing of eco‑related items or bundles.
@@ -67,33 +73,36 @@ The backend exposes REST APIs, grouped by routers:
  
  The app is configured via `app/config.py` using environment variables (see Setup below).
  
- ### 2.3 Frontend Features (React + Vite)
- 
- The frontend is a SPA served by Vite and talks to the backend via axios:
- - **Authentication flows**
-   - User login / register
-   - Company login / register
-   - Admin login
- 
- - **User Dashboard** (`Dashboard.jsx`)
-   - Overview metrics from `/dashboard/summary`
-   - Recent transactions and carbon records
-   - Rewards, badges, challenges, and leaderboard
-   - Wallet connect and token panel
- 
- - **Company Portal**
-   - Company login and dashboard components under `Company*` files
-   - Company view into aggregated impact and activity
- 
- - **Admin Panel**
-   - Admin login and panel components (`AdminLogin`, `AdminPanel`)
-   - Manage users, companies, and high‑level settings via admin APIs
- 
- - **Payments & Marketplace**
-   - Dedicated payment pages (`Payment`, `PaymentsHub`) calling backend `/payments` and `/marketplace` routes.
-   - Public marketplace view (`MarketplacePublic`) for browsing offerings.
- 
- UI is styled primarily via Tailwind utility classes and small reusable UI primitives under `src/ui/`.
+### 2.3 Frontend Features (React + Vite)
+
+The frontend is a SPA served by Vite and talks to the backend via axios:
+
+- **Authentication flows**
+  - User login / register
+  - Company login / register
+  - Admin login
+
+- **User Dashboard** (`Dashboard.jsx`)
+  - Overview metrics from `/dashboard/summary`
+  - Recent transactions and carbon records
+  - Rewards, badges, challenges, and leaderboard
+  - Wallet, UPI, and token panels
+  - Animated layout built with framer‑motion
+
+- **Company Portal**
+  - Company login and dashboard components under `Company*` files
+  - Company view into aggregated impact and activity
+  - Merchant POS, realistic item catalog, and QR generation with carbon/eco‑points preview
+
+- **Admin Panel**
+  - Admin login and panel components (`AdminLogin`, `AdminPanel`)
+  - Manage users, companies, and high‑level settings via admin APIs
+
+- **Payments & Marketplace**
+  - Dedicated payment pages (`Payment`, `PaymentsHub`) calling backend `/payments` and `/marketplace` routes
+  - Public marketplace view (`MarketplacePublic`) for browsing offerings
+
+UI is styled primarily via Tailwind utility classes, lucide‑react icons, and framer‑motion on key dashboards.
  
 ### 2.4 Blockchain Workspace (Hardhat)
 
@@ -112,8 +121,11 @@ The backend reads from `blockchain/deployments/*.json` (e.g. `eco_token_polygon.
 ### 2.5 Merchant UPI QR Flow (High Level)
 
 The platform includes a merchant‑style UPI wallet flow:
-- Merchants create QR‑coded orders via `POST /merchant/orders/generate-qr`. The QR payload contains the merchant UPI ID, merchant ID, order ID, amount, and optional item list. A `MerchantOrder` row is created or updated.
-- Users pay either by entering UPI IDs directly (`POST /upi/pay`) or by scanning the merchant QR (`POST /upi/scan-and-pay`). Both paths move balance between UPI wallets and mark the merchant order as paid when applicable.
+
+- Merchants create QR‑coded orders via `POST /merchant/orders/generate-qr`.  
+  The QR payload contains the merchant UPI ID, merchant ID, order ID, amount, and optional item list. A `MerchantOrder` row is created or updated.
+- Users pay either by entering UPI IDs directly (`POST /upi/pay`) or by scanning the merchant QR (`POST /upi/scan-and-pay`).  
+  Both paths move balance between UPI wallets and mark the merchant order as paid when applicable.
 - Every successful UPI QR payment (`/upi/scan-and-pay`) also:
   - Creates a core `Transaction` entry
   - Calculates and records carbon impact
